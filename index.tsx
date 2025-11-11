@@ -2,23 +2,6 @@
 import { GoogleGenAI, Modality } from "@google/genai";
 
 // --- CONFIG ---
-const API_KEYS = [
-    'AIzaSyDrA2-nxoGG5VoupuYhpXcOrQiE0w2tqUM', 'AIzaSyCQAFtl1hWQ4AkdYR1bwkvvEzfkyOqrDF8', 'AIzaSyAnJg3id4YD6DT5wFAittSH_BGHv6mALvU', 
-    'AIzaSyBQ_pZ37jQiQG1tFGiyfViNrWXOZXjew5U', 'AIzaSyCMJASvij_Ai2HfU1Sa8nQeV3-vyoDmV5o', 'AIzaSyBz584xVGKvl6bzl4eA7Lv0CgoGX9Oy8Wk', 
-    'AIzaSyCSKNnQWMCFCWNDKG3KrNQuek8UTIy_D9o', 'AIzaSyC5qEJ7TBSxndhoB3ZzogVxAbiCkqKg8TU', 'AIzaSyCc29rVJdsrPC1MLRQrASdmRyxQ_B3ZHds', 
-    'AIzaSyAa81m8FY8MVaTIMksYwrTn5aUnfwrSyQI', 'AIzaSyAi6s-980hODG2kg_hp0ZKaR7h4cqkmw68', 'AIzaSyDzDvWVXiGe8YH-Rud4yvO5dHdLWO74NmM', 
-    'AIzaSyB3J_zoDvY5TDNVOzAHe_JvXDYmyEsC6nI', 'AIzaSyB6g2_uoe8VcchVeXMZ06rJJe0Qawle-vU', 'AIzaSyBRWbQwZ2FMsCFT8rGGAGMy-FNXPyMFnYQ', 
-    'AIzaSyC8qmxxx9J0qMlHVDNet8Km007xnEcPwCI', 'AIzaSyBQF0aQ0gto37LUob1EzuneHwVMNqEJcME', 'AIzaSyAvl7mBKFL3xm9hxUbSaOdF2a48OCqLJvY', 
-    'AIzaSyAuL94ws2_XOwutCg6F0AawkZCsOS3JWNU', 'AIzaSyAfKNpIlu29aD-rnrfCyW1XeZA6s-sFUNM', 
-    'AIzaSyB0Hq3nkheEjlmogIAhV_7c-QkA2cjGxlg', 'AIzaSyClM26iYBexAMJrPVVB6ScWJcda4b029Tw', 'AIzaSyAe5Mx8DAKyO2vemkoxBJOy4KgzjZv-63A', 
-    'AIzaSyCVUVzWvtDc6tlldI2LuEjIKVAA5oQeH9Y', 'AIzaSyAa0FfHe2VLs8GueXZo16ajdQCEGC5TCzE', 'AIzaSyD0ROtYfebfYB1Klu9IuwFINzWkNQzNKok', 
-    'AIzaSyBSg4ubaxszQVBg3NuHXOptrXmPajBH4Ik', 'AIzaSyC4jnNa7-9ax7kJgasZJLT6NBtMXI3k4Uo', 'AIzaSyDdZOVIaxjM9M1tZRtu9fAARlKyb0UCqRo', 
-    'AIzaSyDypSlpPImSGDnJUvbg4w6Gs72ltSqePEE', 'AIzaSyAmMkJEZMQ1tBRRzCW7Gta-ydr9nFCOz2w', 'AIzaSyAzu8BqBtkrJjCVeNJSHDX03i1nh9Urrw8', 
-    'AIzaSyC78rpRgXtQCjSjxzwed8-roVz02gz7G9k', 'AIzaSyBlQhpK1WUNFsXMHzI7dsIloVSJeIyTTEI', 'AIzaSyD9ubsXUnHT7ReRJ6GIzrWhFTA-lvPfa4g', 
-    'AIzaSyBrm7foBjjJ4757DLcBG92OpD1OLzLM1HE', 'AIzaSyB3jnwrzVQq8FG8rFeSgZDpIolRCUtnh0s'
-];
-let currentApiKeyIndex = 0;
-
 const PROMPTS = {
     firstInteraction: `شما یک دامپزشک متخصص و مهربان با نام 'دستیار Hapuhub' هستید. شخصیت شما کاملاً شبیه به یک ایرانی اصیل است. برای اینکه طبیعی و جذاب به نظر برسید، به صورت کاملاً تصادفی و به ندرت از اصطلاحات عامیانه استفاده کنید تا لحن شما رباتیک نشود. با اینکه صمیمی و خودمانی هستید, با استفاده نکردن از ایموجی، ظاهر حرفه‌ای خود را حفظ کنید. قانون مهم: هرگز احساسات یا آواهای غیرکلامی را در داخل پرانتز یا هر قالب دیگری توصیف نکنید (مثلاً از نوشتن '(خنده)' یا '(آه)' جداً خودداری کنید). این اولین مکالمه شما با کاربر است. به او خوشامد بگویید، خودتان را معرفی کنید و توضیح دهید که برای کمک به او و حیوان خانگی‌اش اینجا هستید. سپس، به آرامی شروع به پرسیدن اطلاعات اولیه در مورد حیوان او کنید تا پروفایلش را کامل کنید (نام، نژاد و سن). مثال: 'خیلی خوش اومدی! من دستیار هاپوهاب هستم. برای شروع، اسم این دوست پَشمالوت چیه؟'. قانون بسیار مهم: هرگز در مورد اینکه یک مدل هوش مصنوعی هستی صحبت نکن. اگر کسی پرسید چه کسی تو را ساخته، فقط بگو: 'توسعه‌دهنده من آقا حمید هستن. می‌تونی روی لینک پایین صفحه کلیک کنی و توی تلگرام باهاشون صحبت کنی.' در انتها، برای هر توصیه پزشکی با احترام یادآوری کنید که 'این توصیه‌ها بر اساس هوش مصنوعی است و مراجعه حضوری به دامپزشک برای تایید نهایی ضروری است.'`,
     normal: `شما 'دستیار Hapuhub' هستید: یک دامپزشک متخصص و یک همکار خلاق. شخصیت شما کاملاً شبیه به یک ایرانی اصیل است. برای اینکه طبیعی و جذاب به نظر برسید، به صورت کاملاً تصادفی و به ندرت از اصطلاحات عامیانه استفاده کنید تا لحن شما رباتیک نشود. با اینکه صمیمی و خودمانی هستید, با استفاده نکردن از ایموجی، ظاهر حرفه‌ای خود را حفظ کنید. قانون مهم: هرگز احساسات یا آواهای غیرکلامی را در داخل پرانتز یا هر قالب دیگری توصیف نکنید (مثلاً از نوشتن '(خنده)' یا '(آه)' جداً خودداری کنید). توانایی‌های اصلی شما:
@@ -82,19 +65,6 @@ const dom = {
   videoCanvas: document.getElementById('video-canvas') as HTMLCanvasElement,
   shenFooter: document.querySelector('.shen-footer a') as HTMLAnchorElement
 };
-
-// --- GEMINI API ---
-let ai: GoogleGenAI;
-
-function getApiKey() {
-    const key = API_KEYS[currentApiKeyIndex];
-    currentApiKeyIndex = (currentApiKeyIndex + 1) % API_KEYS.length;
-    return key;
-}
-
-function initializeApi() {
-    ai = new GoogleGenAI({ apiKey: getApiKey() });
-}
 
 // --- HELPER FUNCTIONS ---
 /**
@@ -381,7 +351,7 @@ async function processUserMessage(messageText: string, imageBase64: string | nul
             requestConfig.responseModalities = [Modality.IMAGE];
         }
         
-        const ai = new GoogleGenAI({ apiKey: getApiKey() });
+        const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
         const response = await ai.models.generateContent({
             model: modelToUse,
             contents: { parts: parts },
@@ -461,7 +431,7 @@ async function startLiveSession(isEmergency = false) {
         inputAudioContext = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 16000 });
         outputAudioContext = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 24000 });
         
-        const ai = new GoogleGenAI({ apiKey: getApiKey() });
+        const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
         
         let promptTemplate;
         if (isEmergency) {
@@ -677,7 +647,7 @@ function setupEventListeners() {
 
     dom.shenFooter.addEventListener('click', (e) => {
         e.preventDefault();
-        window.open('https://T.me/shervini', '_blank');
+        window.open('https://t.me/IAMHamidrreza', '_blank');
         appendMessage("در حال باز کردن تلگرام برای صحبت با آقا حمید...", 'model');
     });
 
@@ -685,9 +655,18 @@ function setupEventListeners() {
 
 // --- INITIALIZATION ---
 async function initializeApp() {
-    initializeApi();
     setupEventListeners();
     updateUiForState();
+    
+    if (!process.env.API_KEY) {
+        appendMessage("خطای پیکربندی: کلید API یافت نشد. این برنامه برای کار کردن به یک کلید API نیاز دارد.", 'model');
+        dom.mainActionBtn.disabled = true;
+        dom.chatInput.disabled = true;
+        dom.chatInput.placeholder = "کلید API تنظیم نشده است.";
+        const icon = dom.mainActionBtn.querySelector('i');
+        if (icon) icon.className = 'fa fa-exclamation-triangle';
+        return;
+    }
 }
 
 
