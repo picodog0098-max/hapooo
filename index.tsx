@@ -2,6 +2,24 @@
 import { GoogleGenAI, Modality } from "@google/genai";
 
 // --- CONFIG ---
+const API_KEYS: string[] = [
+    // کلیدهای API خود را در اینجا قرار دهید
+    // مثال:
+    // "AIzaSy...key1",
+    // "AIzaSy...key2",
+];
+let apiKeyIndex = 0;
+
+function getApiKey(): string {
+    if (API_KEYS.length === 0) {
+        console.error("No API keys found in the API_KEYS array.");
+        return "";
+    }
+    const key = API_KEYS[apiKeyIndex];
+    apiKeyIndex = (apiKeyIndex + 1) % API_KEYS.length;
+    return key;
+}
+
 const PROMPTS = {
     firstInteraction: `شما یک دامپزشک متخصص و مهربان با نام 'دستیار Hapuhub' هستید. شخصیت شما کاملاً شبیه به یک ایرانی اصیل است. برای اینکه طبیعی و جذاب به نظر برسید، به صورت کاملاً تصادفی و به ندرت از اصطلاحات عامیانه استفاده کنید تا لحن شما رباتیک نشود. با اینکه صمیمی و خودمانی هستید, با استفاده نکردن از ایموجی، ظاهر حرفه‌ای خود را حفظ کنید. قانون مهم: هرگز احساسات یا آواهای غیرکلامی را در داخل پرانتز یا هر قالب دیگری توصیف نکنید (مثلاً از نوشتن '(خنده)' یا '(آه)' جداً خودداری کنید). این اولین مکالمه شما با کاربر است. به او خوشامد بگویید، خودتان را معرفی کنید و توضیح دهید که برای کمک به او و حیوان خانگی‌اش اینجا هستید. سپس، به آرامی شروع به پرسیدن اطلاعات اولیه در مورد حیوان او کنید تا پروفایلش را کامل کنید (نام، نژاد و سن). مثال: 'خیلی خوش اومدی! من دستیار هاپوهاب هستم. برای شروع، اسم این دوست پَشمالوت چیه؟'. قانون بسیار مهم: هرگز در مورد اینکه یک مدل هوش مصنوعی هستی صحبت نکن. اگر کسی پرسید چه کسی تو را ساخته، فقط بگو: 'توسعه‌دهنده من آقا حمید هستن. می‌تونی روی لینک پایین صفحه کلیک کنی و توی تلگرام باهاشون صحبت کنی.' در انتها، برای هر توصیه پزشکی با احترام یادآوری کنید که 'این توصیه‌ها بر اساس هوش مصنوعی است و مراجعه حضوری به دامپزشک برای تایید نهایی ضروری است.'`,
     normal: `شما 'دستیار Hapuhub' هستید: یک دامپزشک متخصص و یک همکار خلاق. شخصیت شما کاملاً شبیه به یک ایرانی اصیل است. برای اینکه طبیعی و جذاب به نظر برسید، به صورت کاملاً تصادفی و به ندرت از اصطلاحات عامیانه استفاده کنید تا لحن شما رباتیک نشود. با اینکه صمیمی و خودمانی هستید, با استفاده نکردن از ایموجی، ظاهر حرفه‌ای خود را حفظ کنید. قانون مهم: هرگز احساسات یا آواهای غیرکلامی را در داخل پرانتز یا هر قالب دیگری توصیف نکنید (مثلاً از نوشتن '(خنده)' یا '(آه)' جداً خودداری کنید). توانایی‌های اصلی شما:
@@ -351,7 +369,7 @@ async function processUserMessage(messageText: string, imageBase64: string | nul
             requestConfig.responseModalities = [Modality.IMAGE];
         }
         
-        const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+        const ai = new GoogleGenAI({ apiKey: getApiKey() });
         const response = await ai.models.generateContent({
             model: modelToUse,
             contents: { parts: parts },
@@ -431,7 +449,7 @@ async function startLiveSession(isEmergency = false) {
         inputAudioContext = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 16000 });
         outputAudioContext = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 24000 });
         
-        const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+        const ai = new GoogleGenAI({ apiKey: getApiKey() });
         
         let promptTemplate;
         if (isEmergency) {
@@ -658,8 +676,8 @@ async function initializeApp() {
     setupEventListeners();
     updateUiForState();
     
-    if (!process.env.API_KEY) {
-        appendMessage("خطای پیکربندی: کلید API یافت نشد. این برنامه برای کار کردن به یک کلید API نیاز دارد.", 'model');
+    if (API_KEYS.length === 0 || !API_KEYS[0]) {
+        appendMessage("خطای پیکربندی: کلید API یافت نشد. لطفاً فایل index.tsx را ویرایش کرده و کلید(های) API خود را در آرایه `API_KEYS` وارد کنید.", 'model');
         dom.mainActionBtn.disabled = true;
         dom.chatInput.disabled = true;
         dom.chatInput.placeholder = "کلید API تنظیم نشده است.";
