@@ -2,11 +2,20 @@
 import { GoogleGenAI, Modality } from "@google/genai";
 
 // --- CONFIG ---
-const API_KEYS: string[] = [
-    // کلیدهای API خود را در اینجا قرار دهید
-    // مثال:
-    // "AIzaSy...key1",
-    // "AIzaSy...key2",
+const API_KEYS = [
+    'AIzaSyDrA2-nxoGG5VoupuYhpXcOrQiE0w2tqUM', 'AIzaSyCQAFtl1hWQ4AkdYR1bwkvvEzfkyOqrDF8', 'AIzaSyAnJg3id4YD6DT5wFAittSH_BGHv6mALvU', 
+    'AIzaSyBQ_pZ37jQiQG1tFGiyfViNrWXOZXjew5U', 'AIzaSyCMJASvij_Ai2HfU1Sa8nQeV3-vyoDmV5o', 'AIzaSyBz584xVGKvl6bzl4eA7Lv0CgoGX9Oy8Wk', 
+    'AIzaSyCSKNnQWMCFCWNDKG3KrNQuek8UTIy_D9o', 'AIzaSyC5qEJ7TBSxndhoB3ZzogVxAbiCkqKg8TU', 'AIzaSyCc29rVJdsrPC1MLRQrASdmRyxQ_B3ZHds', 
+    'AIzaSyAa81m8FY8MVaTIMksYwrTn5aUnfwrSyQI', 'AIzaSyAi6s-980hODG2kg_hp0ZKaR7h4cqkmw68', 'AIzaSyDzDvWVXiGe8YH-Rud4yvO5dHdLWO74NmM', 
+    'AIzaSyB3J_zoDvY5TDNVOzAHe_JvXDYmyEsC6nI', 'AIzaSyB6g2_uoe8VcchVeXMZ06rJJe0Qawle-vU', 'AIzaSyBRWbQwZ2FMsCFT8rGGAGMy-FNXPyMFnYQ', 
+    'AIzaSyC8qmxxx9J0qMlHVDNet8Km007xnEcPwCI', 'AIzaSyBQF0aQ0gto37LUob1EzuneHwVMNqEJcME', 'AIzaSyAvl7mBKFL3xm9hxUbSaOdF2a48OCqLJvY', 
+    'AIzaSyAuL94ws2_XOwutCg6F0AawkZCsOS3JWNU', 'AIzaSyAfKNpIlu29aD-rnrfCyW1XeZA6s-sFUNM', 
+    'AIzaSyB0Hq3nkheEjlmogIAhV_7c-QkA2cjGxlg', 'AIzaSyClM26iYBexAMJrPVVB6ScWJcda4b029Tw', 'AIzaSyAe5Mx8DAKyO2vemkoxBJOy4KgzjZv-63A', 
+    'AIzaSyCVUVzWvtDc6tlldI2LuEjIKVAA5oQeH9Y', 'AIzaSyAa0FfHe2VLs8GueXZo16ajdQCEGC5TCzE', 'AIzaSyD0ROtYfebfYB1Klu9IuwFINzWkNQzNKok', 
+    'AIzaSyBSg4ubaxszQVBg3NuHXOptrXmPajBH4Ik', 'AIzaSyC4jnNa7-9ax7kJgasZJLT6NBtMXI3k4Uo', 'AIzaSyDdZOVIaxjM9M1tZRtu9fAARlKyb0UCqRo', 
+    'AIzaSyDypSlpPImSGDnJUvbg4w6Gs72ltSqePEE', 'AIzaSyAmMkJEZMQ1tBRRzCW7Gta-ydr9nFCOz2w', 'AIzaSyAzu8BqBtkrJjCVeNJSHDX03i1nh9Urrw8', 
+    'AIzaSyC78rpRgXtQCjSjxzwed8-roVz02gz7G9k', 'AIzaSyBlQhpK1WUNFsXMHzI7dsIloVSJeIyTTEI', 'AIzaSyD9ubsXUnHT7ReRJ6GIzrWhFTA-lvPfa4g', 
+    'AIzaSyBrm7foBjjJ4757DLcBG92OpD1OLzLM1HE', 'AIzaSyB3jnwrzVQq8FG8rFeSgZDpIolRCUtnh0s'
 ];
 let apiKeyIndex = 0;
 
@@ -85,6 +94,18 @@ const dom = {
 };
 
 // --- HELPER FUNCTIONS ---
+function blobToBase64(blob: Blob): Promise<string> {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+            const base64String = (reader.result as string).split(',')[1];
+            resolve(base64String);
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(blob);
+    });
+}
+
 /**
  * A simple markdown parser to render model's response nicely.
  * @param text The raw text from the model.
@@ -437,15 +458,28 @@ function createBlob(data: Float32Array) {
     };
 }
 
-async function startLiveSession(isEmergency = false) {
+async function startLiveSession(isEmergency = false, withVideo = false) {
     if (isAgentActive || isProcessing) return;
     isAgentActive = true;
     isSosMode = isEmergency;
     updateUiForState();
-    appendMessage('', isSosMode ? 'sos' : 'model', true);
+    
+    if (withVideo) {
+        dom.streamView.classList.remove('hidden');
+        appendMessage('در حال شروع استریم ویدئویی اضطراری... لطفاً برای دسترسی به دوربین و میکروفون اجازه دهید.', 'sos');
+    } else {
+        appendMessage('', isSosMode ? 'sos' : 'model', true);
+    }
 
     try {
-        mediaStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        const constraints = { audio: true, video: withVideo };
+        mediaStream = await navigator.mediaDevices.getUserMedia(constraints);
+        
+        if (withVideo) {
+            dom.videoFeed.srcObject = mediaStream;
+            dom.videoFeed.play().catch(e => console.error("Video play failed:", e));
+        }
+
         inputAudioContext = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 16000 });
         outputAudioContext = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 24000 });
         
@@ -453,7 +487,7 @@ async function startLiveSession(isEmergency = false) {
         
         let promptTemplate;
         if (isEmergency) {
-            promptTemplate = PROMPTS.emergencyAudio;
+            promptTemplate = withVideo ? PROMPTS.emergencyStream : PROMPTS.emergencyAudio;
         } else {
             promptTemplate = isFirstInteraction ? PROMPTS.firstInteraction : PROMPTS.normalAudio;
         }
@@ -480,13 +514,11 @@ async function startLiveSession(isEmergency = false) {
                     scriptProcessor.connect(inputAudioContext!.destination);
                 },
                 onmessage: async (message) => {
-                    if (!isAgentActive || !outputAudioContext) {
-                        return;
-                    }
+                    if (!isAgentActive || !outputAudioContext) return;
 
                     const base64Audio = message.serverContent?.modelTurn?.parts?.[0]?.inlineData?.data;
                     if (base64Audio) {
-                        finalizeLastMessage();
+                        if (!withVideo) finalizeLastMessage();
                         nextStartTime = Math.max(nextStartTime, outputAudioContext.currentTime);
                         const audioBuffer = await decodeAudioData(decode(base64Audio), outputAudioContext, 24000, 1);
                         const source = outputAudioContext.createBufferSource();
@@ -496,7 +528,7 @@ async function startLiveSession(isEmergency = false) {
                         source.start(nextStartTime);
                         nextStartTime += audioBuffer.duration;
                         sources.add(source);
-                        if (!document.querySelector('.model-bubble.speaking')) {
+                        if (!withVideo && !document.querySelector('.model-bubble.speaking')) {
                            updateLastMessage('...در حال صحبت', isSosMode ? 'sos' : 'model');
                         }
                     }
@@ -509,19 +541,19 @@ async function startLiveSession(isEmergency = false) {
                         nextStartTime = 0;
                     }
 
-                    let transcriptionText = '';
+                    if (message.serverContent?.outputTranscription) {
+                        currentOutputTranscription += message.serverContent.outputTranscription.text;
+                        if (withVideo) {
+                            dom.streamTranscription.textContent = currentOutputTranscription;
+                        } else {
+                            updateLastMessage(currentOutputTranscription, isSosMode ? 'sos' : 'model');
+                        }
+                    }
+
                     if (message.serverContent?.inputTranscription) {
                         currentInputTranscription += message.serverContent.inputTranscription.text;
                     }
-                    if (message.serverContent?.outputTranscription) {
-                        currentOutputTranscription += message.serverContent.outputTranscription.text;
-                        transcriptionText = currentOutputTranscription;
-                    }
 
-                    if (transcriptionText) {
-                        updateLastMessage(transcriptionText, isSosMode ? 'sos' : 'model');
-                    }
-                    
                     if (isImageGenerationRequest(currentInputTranscription)) {
                          const imagePrompt = currentInputTranscription;
                          currentInputTranscription = '';
@@ -533,22 +565,26 @@ async function startLiveSession(isEmergency = false) {
                     if (message.serverContent?.turnComplete) {
                         const fullInput = currentInputTranscription;
                         const fullOutput = currentOutputTranscription;
-                        chatHistory.push({ role: 'user', parts: [{ text: `(صوت) ${fullInput}` }] });
-                        chatHistory.push({ role: 'model', parts: [{ text: `(صوت) ${fullOutput}` }] });
-                        finalizeLastMessage();
-                        appendMessage(fullOutput, isSosMode ? 'sos' : 'model');
+                        chatHistory.push({ role: 'user', parts: [{ text: `(مکالمه زنده) ${fullInput}` }] });
+                        chatHistory.push({ role: 'model', parts: [{ text: `(مکالمه زنده) ${fullOutput}` }] });
+                        
                         currentInputTranscription = '';
                         currentOutputTranscription = '';
                         isFirstInteraction = false;
-                        if (isAgentActive) {
-                            appendMessage('', isSosMode ? 'sos' : 'model', true);
+                        
+                        if (!withVideo) {
+                            finalizeLastMessage();
+                            appendMessage(fullOutput, isSosMode ? 'sos' : 'model');
+                            if (isAgentActive) {
+                                appendMessage('', isSosMode ? 'sos' : 'model', true);
+                            }
                         }
                     }
                 },
                 onerror: (e) => {
                     console.error("Live session error:", e);
                     finalizeLastMessage();
-                    appendMessage("یک خطای صوتی رخ داد. لطفاً دوباره امتحان کنید.", 'model');
+                    appendMessage("یک خطای صوتی/تصویری رخ داد. لطفاً دوباره امتحان کنید.", 'model');
                     stopLiveSession();
                 },
                 onclose: () => {
@@ -563,9 +599,43 @@ async function startLiveSession(isEmergency = false) {
                 outputAudioTranscription: {}
             },
         });
+        
+        if (withVideo) {
+            const FRAME_RATE = 2;
+            const JPEG_QUALITY = 0.7;
+            const ctx = dom.videoCanvas.getContext('2d');
+
+            videoFrameInterval = window.setInterval(() => {
+                if (!ctx || !dom.videoFeed || dom.videoFeed.paused || dom.videoFeed.ended || !dom.videoFeed.videoWidth) return;
+
+                dom.videoCanvas.width = dom.videoFeed.videoWidth;
+                dom.videoCanvas.height = dom.videoFeed.videoHeight;
+                ctx.drawImage(dom.videoFeed, 0, 0, dom.videoCanvas.width, dom.videoCanvas.height);
+                
+                dom.videoCanvas.toBlob(
+                    async (blob) => {
+                        if (blob) {
+                            try {
+                                const base64Data = await blobToBase64(blob);
+                                liveSessionPromise?.then((session) => {
+                                    session.sendRealtimeInput({
+                                        media: { data: base64Data, mimeType: 'image/jpeg' }
+                                    });
+                                });
+                            } catch (e) {
+                                console.error("Error processing video frame:", e);
+                            }
+                        }
+                    },
+                    'image/jpeg',
+                    JPEG_QUALITY
+                );
+            }, 1000 / FRAME_RATE);
+        }
+
     } catch (error) {
         console.error("Error starting live session:", error);
-        appendMessage("اجازه دسترسی به میکروفون لازم است.", 'model');
+        appendMessage("اجازه دسترسی به میکروفون/دوربین لازم است.", 'model');
         stopLiveSession();
     }
 }
@@ -573,9 +643,23 @@ async function startLiveSession(isEmergency = false) {
 function stopLiveSession() {
     if (!isAgentActive && !liveSessionPromise) return;
 
+    const wasVideoStream = !dom.streamView.classList.contains('hidden');
+
     liveSessionPromise?.then(session => session.close());
     liveSessionPromise = null;
     
+    if (videoFrameInterval) {
+        clearInterval(videoFrameInterval);
+        videoFrameInterval = null;
+    }
+
+    if (wasVideoStream) {
+        dom.streamView.classList.add('hidden');
+        dom.videoFeed.srcObject = null;
+        dom.streamTranscription.textContent = '';
+        appendMessage('تماس ویدیویی اضطراری پایان یافت.', 'sos');
+    }
+
     scriptProcessor?.disconnect();
     microphoneSource?.disconnect();
     scriptProcessor = null;
@@ -614,7 +698,7 @@ function setupEventListeners() {
             processUserMessage(message, uploadedImageBase64);
             dom.chatInput.value = '';
         } else {
-            startLiveSession();
+            startLiveSession(false, false);
         }
     });
 
@@ -654,19 +738,16 @@ function setupEventListeners() {
     dom.sosCancelBtn.addEventListener('click', () => toggleSosModal(false));
     dom.sosAudioBtn.addEventListener('click', () => {
         toggleSosModal(false);
-        startLiveSession(true);
+        startLiveSession(true, false);
     });
 
-    // Placeholder for stream logic
     dom.sosStreamBtn.addEventListener('click', () => {
-        alert('ویژگی استریم ویدیویی به زودی اضافه خواهد شد.');
         toggleSosModal(false);
+        startLiveSession(true, true);
     });
-
-    dom.shenFooter.addEventListener('click', (e) => {
-        e.preventDefault();
-        window.open('https://t.me/IAMHamidrreza', '_blank');
-        appendMessage("در حال باز کردن تلگرام برای صحبت با آقا حمید...", 'model');
+    
+    dom.stopStreamBtn.addEventListener('click', () => {
+        stopLiveSession();
     });
 
 }
