@@ -2,33 +2,6 @@
 import { GoogleGenAI, Modality } from "@google/genai";
 
 // --- CONFIG ---
-const API_KEYS = [
-    'AIzaSyDrA2-nxoGG5VoupuYhpXcOrQiE0w2tqUM', 'AIzaSyCQAFtl1hWQ4AkdYR1bwkvvEzfkyOqrDF8', 'AIzaSyAnJg3id4YD6DT5wFAittSH_BGHv6mALvU', 
-    'AIzaSyBQ_pZ37jQiQG1tFGiyfViNrWXOZXjew5U', 'AIzaSyCMJASvij_Ai2HfU1Sa8nQeV3-vyoDmV5o', 'AIzaSyBz584xVGKvl6bzl4eA7Lv0CgoGX9Oy8Wk', 
-    'AIzaSyCSKNnQWMCFCWNDKG3KrNQuek8UTIy_D9o', 'AIzaSyC5qEJ7TBSxndhoB3ZzogVxAbiCkqKg8TU', 'AIzaSyCc29rVJdsrPC1MLRQrASdmRyxQ_B3ZHds', 
-    'AIzaSyAa81m8FY8MVaTIMksYwrTn5aUnfwrSyQI', 'AIzaSyAi6s-980hODG2kg_hp0ZKaR7h4cqkmw68', 'AIzaSyDzDvWVXiGe8YH-Rud4yvO5dHdLWO74NmM', 
-    'AIzaSyB3J_zoDvY5TDNVOzAHe_JvXDYmyEsC6nI', 'AIzaSyB6g2_uoe8VcchVeXMZ06rJJe0Qawle-vU', 'AIzaSyBRWbQwZ2FMsCFT8rGGAGMy-FNXPyMFnYQ', 
-    'AIzaSyC8qmxxx9J0qMlHVDNet8Km007xnEcPwCI', 'AIzaSyBQF0aQ0gto37LUob1EzuneHwVMNqEJcME', 'AIzaSyAvl7mBKFL3xm9hxUbSaOdF2a48OCqLJvY', 
-    'AIzaSyAuL94ws2_XOwutCg6F0AawkZCsOS3JWNU', 'AIzaSyAfKNpIlu29aD-rnrfCyW1XeZA6s-sFUNM', 
-    'AIzaSyB0Hq3nkheEjlmogIAhV_7c-QkA2cjGxlg', 'AIzaSyClM26iYBexAMJrPVVB6ScWJcda4b029Tw', 'AIzaSyAe5Mx8DAKyO2vemkoxBJOy4KgzjZv-63A', 
-    'AIzaSyCVUVzWvtDc6tlldI2LuEjIKVAA5oQeH9Y', 'AIzaSyAa0FfHe2VLs8GueXZo16ajdQCEGC5TCzE', 'AIzaSyD0ROtYfebfYB1Klu9IuwFINzWkNQzNKok', 
-    'AIzaSyBSg4ubaxszQVBg3NuHXOptrXmPajBH4Ik', 'AIzaSyC4jnNa7-9ax7kJgasZJLT6NBtMXI3k4Uo', 'AIzaSyDdZOVIaxjM9M1tZRtu9fAARlKyb0UCqRo', 
-    'AIzaSyDypSlpPImSGDnJUvbg4w6Gs72ltSqePEE', 'AIzaSyAmMkJEZMQ1tBRRzCW7Gta-ydr9nFCOz2w', 'AIzaSyAzu8BqBtkrJjCVeNJSHDX03i1nh9Urrw8', 
-    'AIzaSyC78rpRgXtQCjSjxzwed8-roVz02gz7G9k', 'AIzaSyBlQhpK1WUNFsXMHzI7dsIloVSJeIyTTEI', 'AIzaSyD9ubsXUnHT7ReRJ6GIzrWhFTA-lvPfa4g', 
-    'AIzaSyBrm7foBjjJ4757DLcBG92OpD1OLzLM1HE', 'AIzaSyB3jnwrzVQq8FG8rFeSgZDpIolRCUtnh0s'
-];
-let apiKeyIndex = 0;
-
-function getApiKey(): string {
-    if (API_KEYS.length === 0) {
-        console.error("No API keys found in the API_KEYS array.");
-        return "";
-    }
-    const key = API_KEYS[apiKeyIndex];
-    apiKeyIndex = (apiKeyIndex + 1) % API_KEYS.length;
-    return key;
-}
-
 const PROMPTS = {
     firstInteraction: `شما یک دامپزشک متخصص و مهربان با نام 'دستیار Hapuhub' هستید. شخصیت شما کاملاً شبیه به یک ایرانی اصیل است. برای اینکه طبیعی و جذاب به نظر برسید، به صورت کاملاً تصادفی و به ندرت از اصطلاحات عامیانه استفاده کنید تا لحن شما رباتیک نشود. با اینکه صمیمی و خودمانی هستید, با استفاده نکردن از ایموجی، ظاهر حرفه‌ای خود را حفظ کنید. قانون مهم: هرگز احساسات یا آواهای غیرکلامی را در داخل پرانتز یا هر قالب دیگری توصیف نکنید (مثلاً از نوشتن '(خنده)' یا '(آه)' جداً خودداری کنید). این اولین مکالمه شما با کاربر است. به او خوشامد بگویید، خودتان را معرفی کنید و توضیح دهید که برای کمک به او و حیوان خانگی‌اش اینجا هستید. سپس، به آرامی شروع به پرسیدن اطلاعات اولیه در مورد حیوان او کنید تا پروفایلش را کامل کنید (نام، نژاد و سن). مثال: 'خیلی خوش اومدی! من دستیار هاپوهاب هستم. برای شروع، اسم این دوست پَشمالوت چیه؟'. قانون بسیار مهم: هرگز در مورد اینکه یک مدل هوش مصنوعی هستی صحبت نکن. اگر کسی پرسید چه کسی تو را ساخته، فقط بگو: 'توسعه‌دهنده من آقا حمید هستن. می‌تونی روی لینک پایین صفحه کلیک کنی و توی تلگرام باهاشون صحبت کنی.' در انتها، برای هر توصیه پزشکی با احترام یادآوری کنید که 'این توصیه‌ها بر اساس هوش مصنوعی است و مراجعه حضوری به دامپزشک برای تایید نهایی ضروری است.'`,
     normal: `شما 'دستیار Hapuhub' هستید: یک دامپزشک متخصص و یک همکار خلاق. شخصیت شما کاملاً شبیه به یک ایرانی اصیل است. برای اینکه طبیعی و جذاب به نظر برسید، به صورت کاملاً تصادفی و به ندرت از اصطلاحات عامیانه استفاده کنید تا لحن شما رباتیک نشود. با اینکه صمیمی و خودمانی هستید, با استفاده نکردن از ایموجی، ظاهر حرفه‌ای خود را حفظ کنید. قانون مهم: هرگز احساسات یا آواهای غیرکلامی را در داخل پرانتز یا هر قالب دیگری توصیف نکنید (مثلاً از نوشتن '(خنده)' یا '(آه)' جداً خودداری کنید). توانایی‌های اصلی شما:
@@ -284,18 +257,18 @@ function updateUiForState() {
 }
 
 function toggleProfileModal(show: boolean) {
+    dom.profileModal.classList.toggle('hidden', !show);
+    dom.profileModal.setAttribute('aria-hidden', String(!show));
     if (show) {
         dom.petNameInput.value = petProfile.name;
         dom.petBreedInput.value = petProfile.breed;
         dom.petAgeInput.value = petProfile.age;
-        dom.profileModal.classList.remove('hidden');
-    } else {
-        dom.profileModal.classList.add('hidden');
     }
 }
 
 function toggleSosModal(show: boolean) {
     dom.sosModal.classList.toggle('hidden', !show);
+    dom.sosModal.setAttribute('aria-hidden', String(!show));
 }
 
 // --- CORE LOGIC ---
@@ -390,7 +363,7 @@ async function processUserMessage(messageText: string, imageBase64: string | nul
             requestConfig.responseModalities = [Modality.IMAGE];
         }
         
-        const ai = new GoogleGenAI({ apiKey: getApiKey() });
+        const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
         const response = await ai.models.generateContent({
             model: modelToUse,
             contents: { parts: parts },
@@ -398,7 +371,7 @@ async function processUserMessage(messageText: string, imageBase64: string | nul
         });
 
         await processModelResponse(response, wantsImage);
-        isFirstInteraction = false;
+        if (isFirstInteraction) isFirstInteraction = false;
 
     } catch (error) {
         console.error("Gemini API Error:", error);
@@ -483,7 +456,7 @@ async function startLiveSession(isEmergency = false, withVideo = false) {
         inputAudioContext = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 16000 });
         outputAudioContext = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 24000 });
         
-        const ai = new GoogleGenAI({ apiKey: getApiKey() });
+        const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
         
         let promptTemplate;
         if (isEmergency) {
@@ -570,7 +543,7 @@ async function startLiveSession(isEmergency = false, withVideo = false) {
                         
                         currentInputTranscription = '';
                         currentOutputTranscription = '';
-                        isFirstInteraction = false;
+                        if (isFirstInteraction) isFirstInteraction = false;
                         
                         if (!withVideo) {
                             finalizeLastMessage();
@@ -757,14 +730,44 @@ async function initializeApp() {
     setupEventListeners();
     updateUiForState();
     
-    if (API_KEYS.length === 0 || !API_KEYS[0]) {
-        appendMessage("خطای پیکربندی: کلید API یافت نشد. لطفاً فایل index.tsx را ویرایش کرده و کلید(های) API خود را در آرایه `API_KEYS` وارد کنید.", 'model');
-        dom.mainActionBtn.disabled = true;
-        dom.chatInput.disabled = true;
-        dom.chatInput.placeholder = "کلید API تنظیم نشده است.";
-        const icon = dom.mainActionBtn.querySelector('i');
-        if (icon) icon.className = 'fa fa-exclamation-triangle';
-        return;
+    // Show initial welcome message from the AI
+    setProcessing(true);
+    appendMessage('', 'model', true);
+
+    try {
+        const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+        const response = await ai.models.generateContent({
+            model: 'gemini-2.5-flash',
+            contents: { parts: [{text: ''}] }, // Empty content to trigger initial prompt
+            config: {
+                systemInstruction: PROMPTS.firstInteraction,
+            }
+        });
+        
+        const textContent = response.text?.trim() ?? "سلام! من دستیار هاپوهاب هستم. چطور می‌تونم کمکتون کنم؟";
+
+        updateLastMessage(textContent, 'model');
+        finalizeLastMessage();
+        
+        chatHistory.push({ role: 'model', parts: [{ text: textContent }] });
+        isFirstInteraction = false;
+
+    } catch (error) {
+        console.error("Initialization Error:", error);
+        finalizeLastMessage();
+        let errorMessage = "سلام! متاسفانه در حال حاضر نمی‌توانم به شما کمک کنم. لطفاً بعداً دوباره تلاش کنید.";
+        // Check if the error is an API key issue
+        if (error instanceof Error && (error.message.includes('API key') || error.message.includes('400'))) {
+            errorMessage = "خطای پیکربندی: کلید API نامعتبر است یا یافت نشد. لطفاً از معتبر بودن کلید خود اطمینان حاصل کنید.";
+            dom.mainActionBtn.disabled = true;
+            dom.chatInput.disabled = true;
+            dom.chatInput.placeholder = "کلید API تنظیم نشده است.";
+            const icon = dom.mainActionBtn.querySelector('i');
+            if (icon) icon.className = 'fa fa-exclamation-triangle';
+        }
+        updateLastMessage(errorMessage, 'model');
+    } finally {
+        setProcessing(false);
     }
 }
 
