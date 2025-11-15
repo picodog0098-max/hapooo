@@ -371,7 +371,6 @@ async function processUserMessage(messageText: string, imageBase64: string | nul
         });
 
         await processModelResponse(response, wantsImage);
-        if (isFirstInteraction) isFirstInteraction = false;
 
     } catch (error) {
         console.error("Gemini API Error:", error);
@@ -543,7 +542,6 @@ async function startLiveSession(isEmergency = false, withVideo = false) {
                         
                         currentInputTranscription = '';
                         currentOutputTranscription = '';
-                        if (isFirstInteraction) isFirstInteraction = false;
                         
                         if (!withVideo) {
                             finalizeLastMessage();
@@ -738,7 +736,7 @@ async function initializeApp() {
         const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
         const response = await ai.models.generateContent({
             model: 'gemini-2.5-flash',
-            contents: { parts: [{text: ''}] }, // Empty content to trigger initial prompt
+            contents: 'سلام', // Use a natural starting greeting to ensure a valid API call
             config: {
                 systemInstruction: PROMPTS.firstInteraction,
             }
@@ -750,8 +748,7 @@ async function initializeApp() {
         finalizeLastMessage();
         
         chatHistory.push({ role: 'model', parts: [{ text: textContent }] });
-        isFirstInteraction = false;
-
+        
     } catch (error) {
         console.error("Initialization Error:", error);
         finalizeLastMessage();
