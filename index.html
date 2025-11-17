@@ -60,217 +60,163 @@
         border: 1px solid rgba(255, 255, 255, 0.1);
         box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
       }
-
-      .chat-bubble { 
-        max-width: 85%; 
-        word-wrap: break-word; 
-        transition: border-color 0.3s ease, box-shadow 0.3s ease;
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        backdrop-filter: blur(8px);
+      .modal-card {
+        background-color: rgba(30, 30, 30, 0.85);
+        backdrop-filter: blur(15px);
+        border: 1px solid rgba(255, 255, 255, 0.15);
       }
-      .user-bubble {
-        background-color: rgba(6, 78, 59, 0.5); /* Semi-transparent dark green */
+      .chat-bubble {
+          max-width: 85%;
+          word-wrap: break-word;
+          transition: all 0.3s ease-in-out;
       }
-      .model-bubble {
-        background-color: rgba(55, 65, 81, 0.5); /* Semi-transparent medium-dark gray */
-      }
-      .sos-bubble {
-        background-color: rgba(153, 27, 27, 0.5); /* Semi-transparent dark red */
-      }
+      .user-bubble { background-color: rgba(52, 53, 65, 0.9); border: 1px solid rgba(255,255,255,0.1); }
+      .model-bubble { background-color: rgba(28, 100, 153, 0.7); border: 1px solid rgba(138, 180, 248, 0.2); }
+      .sos-bubble { background-color: rgba(180, 50, 50, 0.8); border: 1px solid rgba(255, 150, 150, 0.3); }
+      .chat-bubble-icon { color: rgba(255,255,255,0.5); font-size: 0.8rem; }
       
-      .chat-bubble-icon {
-        font-size: 0.8rem;
-        color: rgba(255, 255, 255, 0.6);
-        margin-top: 4px;
+      .listening {
+          animation: pulse 1.5s infinite;
       }
-
-      .shen-footer a {
-        font-family: 'Arimo', sans-serif;
-        background: linear-gradient(45deg, #ffffff, #bdc3c7, #95a5a6, #ffffff, #bdc3c7);
-        -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-        background-size: 400% 400%; animation: gradient-wave 5s ease infinite;
+      @keyframes pulse {
+        0%, 100% { box-shadow: 0 0 0 0 rgba(230, 120, 120, 0.7); }
+        50% { box-shadow: 0 0 0 10px rgba(230, 120, 120, 0); }
       }
-      @keyframes gradient-wave {
-        0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; }
-      }
-
-      #main-action-btn:active {
-        transform: scale(0.95);
-      }
-      #main-action-btn:disabled {
-        cursor: not-allowed;
-        background: #4a5568;
-      }
-
-      .header-title-gradient {
-        font-family: 'Arimo', sans-serif;
-        background: linear-gradient(45deg, #e0e0e0, #a0a0a0, #c0c0c0, #e0e0e0);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-size: 400% 400%;
-        animation: gradient-wave 8s ease infinite;
-      }
-      
-      /* --- VISUAL CUES FOR AI STATE --- */
-      
-      /* Listening state for the main button */
-      #main-action-btn.listening {
-          animation: pulse-blue 1.5s infinite;
-          transform: scale(1.1);
-      }
-      @keyframes pulse-blue {
-          0% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7); }
-          70% { box-shadow: 0 0 0 20px rgba(59, 130, 246, 0); }
-          100% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0); }
-      }
-
-      /* Typing indicator for processing state */
       .typing-indicator span {
-          height: 8px;
-          width: 8px;
-          background-color: #9ca3af;
-          border-radius: 50%;
-          display: inline-block;
+          height: 8px; width: 8px; background-color: #9ca3af;
+          border-radius: 50%; display: inline-block;
           animation: bounce 1.4s infinite ease-in-out both;
       }
-      .typing-indicator span:nth-of-type(1) { animation-delay: -0.32s; }
-      .typing-indicator span:nth-of-type(2) { animation-delay: -0.16s; }
+      .typing-indicator span:nth-child(1) { animation-delay: -0.32s; }
+      .typing-indicator span:nth-child(2) { animation-delay: -0.16s; }
       @keyframes bounce {
-          0%, 80%, 100% { transform: scale(0); }
-          40% { transform: scale(1.0); }
+        0%, 80%, 100% { transform: scale(0); }
+        40% { transform: scale(1.0); }
       }
-
-      /* Speaking state for AI chat bubble */
-      .model-bubble.speaking {
-          border-color: rgba(59, 130, 246, 0.8);
-          box-shadow: 0 0 15px rgba(59, 130, 246, 0.5);
-      }
-      /* Styles for markdown parsing */
-      .code-block {
-        background-color: #2d2d2d;
-        border: 1px solid #444;
-        border-radius: 6px;
-        padding: 0.8rem;
-        font-family: 'Courier New', Courier, monospace;
-        white-space: pre-wrap;
-        word-wrap: break-word;
-        margin: 0.5rem 0;
-        text-align: left;
-        direction: ltr;
-      }
-      .inline-code {
-        background-color: #3a3a3a;
-        border-radius: 3px;
-        padding: 0.1em 0.3em;
-        font-family: 'Courier New', Courier, monospace;
-      }
+       .speaking { animation: speaking-pulse 1s infinite alternate; }
+       @keyframes speaking-pulse {
+        from { transform: scale(1); opacity: 1; }
+        to { transform: scale(1.02); opacity: 0.95; }
+       }
+        .code-block {
+            background-color: #2d2d2d;
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 0.5rem 0;
+            overflow-x: auto;
+            border: 1px solid #444;
+            font-family: 'Courier New', Courier, monospace;
+            direction: ltr;
+        }
+        .inline-code {
+            background-color: #444;
+            border-radius: 4px;
+            padding: 2px 5px;
+            font-family: 'Courier New', Courier, monospace;
+        }
+        .shen-footer a {
+            background: linear-gradient(90deg, #ff8a00, #e52e71, #4c2aff, #00d4ff);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            animation: gradient-animation 5s ease infinite;
+            background-size: 200% 200%;
+        }
+        @keyframes gradient-animation {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
     </style>
-<script type="importmap">
-{
-  "imports": {
-    "@google/genai": "https://aistudiocdn.com/@google/genai@^1.29.0"
-  }
-}
-</script>
 </head>
 <body class="flex flex-col h-screen">
-  <div id="bg-overlay"></div>
 
-  <header class="glass-effect p-4 flex justify-between items-center flex-shrink-0 z-10">
-    <div class="flex-1">
-      <h1 class="text-2xl font-bold tracking-wider flex items-center gap-2">
-        <span class="header-title-gradient">Hapuhub</span>
-        <i class="fa fa-paw text-xl text-gray-300"></i>
-      </h1>
-    </div>
-    <div class="flex-1 flex justify-center">
-      <button id="header-sos-btn" aria-label="حالت اضطراری" class="w-10 h-10 bg-red-600 hover:bg-red-700 rounded-full flex items-center justify-center text-white transition-all duration-200 hover:scale-105 shadow-lg" style="box-shadow: 0 4px 6px rgba(0,0,0,0.4), inset 0 -2px 4px rgba(0,0,0,0.3);">
-        <i class="fa-solid fa-plus font-bold text-lg"></i>
-      </button>
-    </div>
-    <div class="flex-1 flex justify-end">
-      <button id="profile-btn" class="px-5 py-2 bg-gray-800/70 hover:bg-gray-700/80 rounded-full transition-colors text-sm sm:text-base flex-shrink-0">هاپوفایل</button>
-    </div>
-  </header>
-
-  <main id="chat-history" class="flex flex-col flex-1 overflow-y-auto p-4 space-y-4 pb-28" aria-live="polite">
-    <!-- Chat messages will be appended here -->
-  </main>
-
-  <footer class="fixed bottom-0 left-0 right-0 p-4 z-30">
-    <div class="w-full max-w-2xl mx-auto">
-        <div class="glass-effect rounded-full flex items-center p-2 gap-2">
-            <label id="upload-label" for="image-upload" aria-label="آپلود عکس" class="cursor-pointer flex-shrink-0 w-12 h-12 flex items-center justify-center rounded-full text-gray-300 hover:bg-white/10 transition-colors">
-                <i class="fa fa-paperclip text-lg"></i>
-                <input type="file" id="image-upload" class="hidden" accept="image/*">
-            </label>
-            <input type="text" id="chat-input" placeholder="پیام خود را بنویسید..." class="flex-grow bg-transparent border-none focus:outline-none text-white placeholder-gray-400 mx-2">
-            <button id="main-action-btn" aria-label="ارسال پیام یا شروع مکالمه صوتی" class="flex-shrink-0 w-14 h-14 bg-gradient-to-br from-gray-600 to-gray-900 rounded-full flex items-center justify-center text-white text-2xl transition-all duration-300 transform hover:scale-105">
-                <i class="fa fa-paw"></i>
+    <!-- Header -->
+    <header class="glass-effect p-3 flex justify-between items-center shadow-lg">
+        <div class="flex items-center gap-3">
+            <img src="https://raw.githubusercontent.com/Shervinuri/Telbot/refs/heads/main/Picsart_25-11-10_19-03-13-347-removebg-preview.png" alt="Hapuhub Logo" class="w-10 h-10 rounded-full border-2 border-gray-500">
+            <h1 class="text-xl font-bold text-gray-200" style="font-family: 'Arimo', sans-serif;">Hapuhub</h1>
+        </div>
+        <div class="flex items-center gap-4">
+             <button id="profile-btn" aria-label="پروفایل حیوان خانگی" class="text-gray-300 hover:text-white transition-colors p-2 rounded-full hover:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed">
+                <i class="fas fa-id-card-clip text-xl"></i>
+            </button>
+            <button id="header-sos-btn" aria-label="حالت اضطراری" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-full transition-all duration-300 shadow-md hover:shadow-lg disabled:opacity-50 disabled:bg-gray-500 disabled:cursor-not-allowed">
+                <i class="fas fa-biohazard mr-2"></i>SOS
             </button>
         </div>
-        <div class="shen-footer text-center text-xs mt-3">
-            <a href="https://t.me/IAMHamidrreza" target="_blank" rel="noopener noreferrer">Exclusive Hamid™ made</a>
+    </header>
+
+    <!-- Chat History -->
+    <main id="chat-history" class="flex-1 p-4 overflow-y-auto flex flex-col-reverse gap-4"></main>
+
+     <!-- Video Stream View -->
+    <div id="stream-view" class="hidden fixed inset-0 bg-black z-40 flex flex-col items-center justify-center p-4">
+        <video id="video-feed" class="w-full h-full object-contain" autoplay playsinline></video>
+        <canvas id="video-canvas" class="hidden"></canvas> <!-- Hidden canvas for frame grabbing -->
+        <div class="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black to-transparent">
+             <p id="stream-transcription" class="text-white text-center text-lg font-semibold mb-4"></p>
+             <button id="stop-stream-btn" class="mx-auto block bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-6 rounded-full transition-all duration-300">
+                <i class="fas fa-phone-slash mr-2"></i>پایان تماس اضطراری
+            </button>
         </div>
     </div>
-  </footer>
+    
+    <!-- Input Area -->
+    <footer class="glass-effect p-3">
+        <div class="flex items-center gap-2">
+             <label id="upload-label" for="image-upload" class="cursor-pointer text-gray-400 hover:text-white transition-colors p-3 rounded-full hover:bg-white/10">
+                <i class="fas fa-paperclip text-xl"></i>
+                <input id="image-upload" type="file" class="hidden" accept="image/*">
+            </label>
+            <input type="text" id="chat-input" placeholder="در حال آماده‌سازی دستیار..." class="flex-1 bg-transparent border-2 border-gray-600 rounded-full py-3 px-5 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all disabled:opacity-50" disabled>
+            <button id="main-action-btn" class="bg-blue-600 hover:bg-blue-700 text-white font-bold w-14 h-14 rounded-full flex items-center justify-center transition-all duration-300 shadow-lg hover:scale-105 disabled:opacity-50 disabled:bg-gray-500 disabled:cursor-not-allowed" disabled>
+                <i class="fa-solid fa-lock"></i>
+            </button>
+        </div>
+        <p class="shen-footer text-center text-xs mt-2">
+            <a href="https://T.me/IAMHamidrreza" target="_blank">Exclusive HMZ made</a>
+        </p>
+    </footer>
 
-  <!-- Profile Modal -->
-  <div id="profile-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center hidden z-50" role="dialog" aria-modal="true" aria-labelledby="profile-modal-title" aria-hidden="true">
-    <div class="glass-effect rounded-lg p-6 w-full max-w-md m-4">
-      <h2 id="profile-modal-title" class="text-2xl font-bold mb-4 text-white">پروفایل هاپوی شما</h2>
-      <div class="space-y-4">
-        <div>
-          <label for="pet-name" class="block mb-1 text-secondary-text">نام</label>
-          <input type="text" id="pet-name" class="w-full bg-gray-800 border border-gray-700 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-white/50 text-white">
+    <!-- Profile Modal -->
+    <div id="profile-modal" class="hidden fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4" aria-hidden="true" role="dialog">
+        <div class="modal-card rounded-lg p-6 w-full max-w-sm">
+            <h2 class="text-xl font-bold mb-4">پروفایل حیوان خانگی</h2>
+            <div class="space-y-4">
+                <input type="text" id="pet-name" placeholder="نام" class="w-full bg-gray-800 border border-gray-600 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <input type="text" id="pet-breed" placeholder="نژاد" class="w-full bg-gray-800 border border-gray-600 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <input type="text" id="pet-age" placeholder="سن" class="w-full bg-gray-800 border border-gray-600 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+            <div class="flex justify-end gap-3 mt-6">
+                <button id="profile-cancel-btn" class="bg-gray-600 hover:bg-gray-700 text-white py-2 px-4 rounded-md transition-colors">لغو</button>
+                <button id="profile-save-btn" class="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-md transition-colors">ذخیره</button>
+            </div>
         </div>
-        <div>
-          <label for="pet-breed" class="block mb-1 text-secondary-text">نژاد</label>
-          <input type="text" id="pet-breed" class="w-full bg-gray-800 border border-gray-700 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-white/50 text-white">
-        </div>
-        <div>
-          <label for="pet-age" class="block mb-1 text-secondary-text">سن</label>
-          <input type="number" id="pet-age" class="w-full bg-gray-800 border border-gray-700 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-white/50 text-white">
-        </div>
-      </div>
-      <div class="mt-6 flex justify-end gap-4">
-        <button id="profile-cancel-btn" class="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors">لغو</button>
-        <button id="profile-save-btn" class="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-black rounded-lg transition-colors font-semibold">ذخیره</button>
-      </div>
     </div>
-  </div>
+    
+     <!-- SOS Modal -->
+    <div id="sos-modal" class="hidden fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4" aria-hidden="true" role="dialog">
+        <div class="modal-card rounded-lg p-6 w-full max-w-sm text-center">
+            <i class="fas fa-biohazard text-5xl text-red-500 mb-4"></i>
+            <h2 class="text-xl font-bold mb-2">حالت اضطراری</h2>
+            <p class="text-gray-300 mb-6">در شرایط اورژانسی، کدام راه ارتباطی را ترجیح می‌دهید؟</p>
+            <div class="flex flex-col gap-3">
+                <button id="sos-stream-btn" class="bg-red-600 hover:bg-red-700 text-white py-3 px-4 rounded-md transition-colors w-full"><i class="fas fa-video mr-2"></i>تماس ویدیویی زنده</button>
+                <button id="sos-audio-btn" class="bg-orange-600 hover:bg-orange-700 text-white py-3 px-4 rounded-md transition-colors w-full"><i class="fas fa-microphone-alt mr-2"></i>تماس صوتی</button>
+                <button id="sos-cancel-btn" class="bg-gray-600 hover:bg-gray-700 text-white py-2 px-4 rounded-md transition-colors mt-4">لغو</button>
+            </div>
+        </div>
+    </div>
 
-  <!-- SOS Modal -->
-  <div id="sos-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center hidden z-50" role="dialog" aria-modal="true" aria-labelledby="sos-modal-title" aria-hidden="true">
-      <div class="glass-effect rounded-lg p-8 w-full max-w-sm m-4 text-center">
-          <h2 id="sos-modal-title" class="text-2xl font-bold mb-2 text-white">حالت اضطراری</h2>
-          <p class="text-secondary-text mb-8">کدام حالت کمک اضطراری را نیاز دارید؟</p>
-          <div class="flex justify-center gap-8">
-              <button id="sos-stream-btn" class="w-24 h-24 sm:w-28 sm:h-28 bg-blue-600 hover:bg-blue-700 rounded-full transition-all duration-200 text-white flex flex-col items-center justify-center gap-2 shadow-lg hover:scale-105 transform">
-                  <i class="fa fa-video text-3xl"></i>
-                  <span class="text-sm font-semibold">ویدیویی</span>
-              </button>
-              <button id="sos-audio-btn" class="w-24 h-24 sm:w-28 sm:h-28 bg-green-600 hover:bg-green-700 rounded-full transition-all duration-200 text-white flex flex-col items-center justify-center gap-2 shadow-lg hover:scale-105 transform">
-                  <i class="fa fa-microphone-alt text-3xl"></i>
-                  <span class="text-sm font-semibold">صوتی</span>
-              </button>
-          </div>
-          <button id="sos-cancel-btn" class="mt-8 text-gray-400 hover:text-white transition-colors">لغو</button>
-      </div>
-  </div>
-
-
-  <!-- Stream View -->
-  <div id="stream-view" class="fixed inset-0 bg-black flex flex-col items-center justify-center hidden z-50">
-      <video id="video-feed" autoplay playsinline class="w-full h-full object-cover"></video>
-      <div id="stream-overlay" class="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-black/50"></div>
-      <div id="stream-transcription" class="absolute top-5 left-5 right-5 text-white text-lg bg-black/50 p-3 rounded-lg"></div>
-      <button id="stop-stream-btn" aria-label="پایان تماس اضطراری" class="absolute bottom-10 w-20 h-20 bg-red-600 hover:bg-red-700 rounded-full flex items-center justify-center text-white transition-transform duration-200 hover:scale-105 shadow-lg">
-          <i class="fa-solid fa-phone-slash text-4xl"></i>
-      </button>
-      <canvas id="video-canvas" class="hidden"></canvas>
-  </div>
-  
-  <script type="module" src="index.tsx"></script>
+    <!-- Main Script -->
+    <script type="importmap">
+      {
+        "imports": {
+          "@google/genai": "https://sdk.gemini.ai/v1_1/gemini-generated-js/gemini.js"
+        }
+      }
+    </script>
+    <script type="module" src="./index.js"></script>
 </body>
 </html>
