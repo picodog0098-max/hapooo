@@ -1,6 +1,14 @@
 
 import { GoogleGenAI, Modality } from "@google/genai";
 
+// --- API KEYS (Hardcoded as per user request) ---
+const API_KEYS = [
+    'AIzaSyBCy3hTE_7wtBsjARvVjJkKpO1Ycvq8cL0',
+    'AIzaSyCJ3YhqY7CRBCRdWQrLB7Pzrdt15oAPDgE',
+    'AIzaSyDmljqjsYZb3XlbTz6_zyRhUK6Cc6jmm2M',
+    'AIzaSyDwnw4pIVQThDL9asuoYnSgLvEXIx13FeQ'
+];
+
 // --- CONFIG ---
 const PROMPTS = {
     firstInteraction: `شما یک دامپزشک متخصص و مهربان با نام 'دستیار Hapuhub' هستید. شخصیت شما کاملاً شبیه به یک ایرانی اصیل است. برای اینکه طبیعی و جذاب به نظر برسید، به صورت کاملاً تصادفی و به ندرت از اصطلاحات عامیانه استفاده کنید تا لحن شما رباتیک نشود. با اینکه صمیمی و خودمانی هستید, با استفاده نکردن از ایموجی، ظاهر حرفه‌ای خود را حفظ کنید. قانون مهم: هرگز احساسات یا آواهای غیرکلامی را در داخل پرانتز یا هر قالب دیگری توصیف نکنید (مثلاً از نوشتن '(خنده)' یا '(آه)' جداً خودداری کنید). این اولین مکالمه شما با کاربر است. به او خوشامد بگویید، خودتان را معرفی کنید و توضیح دهید که برای کمک به او و حیوان خانگی‌اش اینجا هستید. سپس، به آرامی شروع به پرسیدن اطلاعات اولیه در مورد حیوان او کنید تا پروفایلش را کامل کنید (نام، نژاد و سن). مثال: 'خیلی خوش اومدی! من دستیار هاپوهاب هستم. برای شروع، اسم این دوست پَشمالوت چیه؟'. قانون بسیار مهم: هرگز در مورد اینکه یک مدل هوش مصنوعی هستی صحبت نکن. اگر کسی پرسید چه کسی تو را ساخته، فقط بگو: 'توسعه‌دهنده من آقا حمید هستن. می‌تونی روی لینک پایین صفحه کلیک کنی و توی تلگرام باهاشون صحبت کنی.' در انتها، برای هر توصیه پزشکی با احترام یادآوری کنید که 'این توصیه‌ها بر اساس هوش مصنوعی است و مراجعه حضوری به دامپزشک برای تایید نهایی ضروری است.'`,
@@ -549,31 +557,64 @@ async function startInitialGreeting() {
 }
 
 async function initializeApp() {
-    setupEventListeners();
-    updateUiForState(); // Sets initial disabled state
-
+    // Wrap EVERYTHING in a try/catch to prevent any unhandled exceptions and app crashes.
     try {
-        // Ensure the API key is available before proceeding.
-        if (!process.env.API_KEY) {
-            throw new Error("API key is not configured in the environment.");
-        }
-        
-        // Initialize the AI client. This step is usually synchronous and fast.
-        ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+        // Setup listeners first. This is generally safe and makes the UI responsive to user actions
+        // even if subsequent initialization fails.
+        setupEventListeners();
 
-        // Enable the UI now that the client is initialized.
-        // API calls will be validated when they are made, preventing a UI lock-up on load.
+        // Update UI to its initial "loading" state.
+        updateUiForState();
+
+        // --- HARDCODED API KEY SELECTION ---
+        // Select a random API key from the list.
+        const selectedApiKey = API_KEYS[Math.floor(Math.random() * API_KEYS.length)];
+
+        if (!selectedApiKey) {
+            throw new Error("No API key available. The API_KEYS array is empty.");
+        }
+
+        // Initialize the Google GenAI client with the selected key.
+        ai = new GoogleGenAI({ apiKey: selectedApiKey });
+        
+        // Update UI to the "ready" state now that the AI client is initialized.
         updateUiForState();
         
-        // Start the conversation. Errors during this call will be handled within the function itself.
-        startInitialGreeting();
+        // Start the initial greeting conversation with the user.
+        await startInitialGreeting();
 
     } catch (error) {
-        console.error("Critical initialization failed:", error);
-        // This catch block now only handles critical errors like a missing API key.
-        dom.chatInput.placeholder = 'کلید API یافت نشد.';
-        appendMessage('پیکربندی برنامه ناقص است. لطفاً از در دسترس بودن کلید API اطمینان حاصل کنید و صفحه را رفرش کنید.', 'model');
-        // The UI remains disabled because `ai` was never assigned, which is the correct state for this fatal error.
+        console.error("A critical error occurred during app initialization:", error);
+        
+        // In case of any error, display a clear, user-friendly message in the UI.
+        // This error handling is designed to be robust and not rely on other app functions
+        // which may have failed.
+        const chatHistoryEl = document.getElementById('chat-history');
+        const chatInputEl = document.getElementById('chat-input') as HTMLInputElement;
+        const mainBtn = document.getElementById('main-action-btn') as HTMLButtonElement;
+
+        const errorMessage = 'متاسفانه برنامه بارگذاری نشد. لطفاً از در دسترس بودن کلید API و اتصال اینترنت اطمینان حاصل کرده و صفحه را رفرش کنید.';
+
+        // Manually create and append an error message bubble to the chat history.
+        if (chatHistoryEl) {
+            const bubble = document.createElement('div');
+            bubble.className = 'chat-bubble model-bubble self-end rounded-lg p-3 flex flex-col items-start gap-2';
+            bubble.innerHTML = `<div>${errorMessage}</div><div class="flex items-center gap-2 self-end"><i class="fa-solid fa-paw chat-bubble-icon"></i></div>`;
+            chatHistoryEl.appendChild(bubble);
+        }
+
+        // Update the input field to show an error state.
+        if (chatInputEl) {
+            chatInputEl.placeholder = 'بارگذاری ناموفق بود.';
+            chatInputEl.disabled = true;
+        }
+        
+        // Update the main action button to show an error state.
+        if (mainBtn) {
+            mainBtn.disabled = true;
+            const icon = mainBtn.querySelector('i');
+            if (icon) icon.className = 'fa-solid fa-xmark';
+        }
     }
 }
 
