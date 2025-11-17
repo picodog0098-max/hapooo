@@ -132,18 +132,23 @@
 <body class="flex flex-col h-screen">
 
     <!-- Header -->
-    <header class="glass-effect p-3 flex justify-between items-center shadow-lg">
-        <div class="flex items-center gap-3">
-            <img src="https://raw.githubusercontent.com/Shervinuri/Telbot/refs/heads/main/Picsart_25-11-10_19-03-13-347-removebg-preview.png" alt="Hapuhub Logo" class="w-10 h-10 rounded-full border-2 border-gray-500">
-            <h1 class="text-xl font-bold text-gray-200" style="font-family: 'Arimo', sans-serif;">Hapuhub</h1>
+    <header class="glass-effect p-3 flex justify-between items-center shadow-lg relative">
+        <!-- Right side (RTL): Hapufile button -->
+        <button id="profile-btn" aria-label="پروفایل حیوان خانگی" class="bg-slate-800 hover:bg-slate-700 text-gray-200 font-semibold py-2 px-5 rounded-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+            هاپوفایل
+        </button>
+
+        <!-- Center: SOS button -->
+        <div class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
+            <button id="header-sos-btn" aria-label="حالت اضطراری" class="bg-red-600 hover:bg-red-700 text-white font-bold w-12 h-12 rounded-full flex items-center justify-center transition-all duration-300 shadow-lg hover:scale-105 disabled:opacity-50 disabled:bg-gray-500 disabled:cursor-not-allowed">
+                <i class="fas fa-plus text-xl"></i>
+            </button>
         </div>
-        <div class="flex items-center gap-4">
-             <button id="profile-btn" aria-label="پروفایل حیوان خانگی" class="text-gray-300 hover:text-white transition-colors p-2 rounded-full hover:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed">
-                <i class="fas fa-id-card-clip text-xl"></i>
-            </button>
-            <button id="header-sos-btn" aria-label="حالت اضطراری" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-full transition-all duration-300 shadow-md hover:shadow-lg disabled:opacity-50 disabled:bg-gray-500 disabled:cursor-not-allowed">
-                <i class="fas fa-biohazard mr-2"></i>SOS
-            </button>
+
+        <!-- Left side (RTL): Hapuhub brand -->
+        <div class="flex items-center gap-2 text-gray-200 font-bold text-xl" style="font-family: 'Arimo', sans-serif;">
+            <i class="fas fa-paw"></i>
+            <span>Hapuhub</span>
         </div>
     </header>
 
