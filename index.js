@@ -278,10 +278,10 @@ async function processUserMessage(messageText, image = null, resumeAudioAfter = 
     const userMessageContent = messageText.trim();
     if (!userMessageContent && !image) return;
     setProcessing(true);
-    
+
     const previewUrl = image ? `data:${image.mimeType};base64,${image.data}` : null;
     appendMessage(userMessageContent, 'user', false, previewUrl);
-    
+
     const parts = [];
     if (image) {
         parts.push({ inlineData: { mimeType: image.mimeType, data: image.data } });
@@ -289,10 +289,10 @@ async function processUserMessage(messageText, image = null, resumeAudioAfter = 
         dom.uploadLabel.classList.remove('text-green-400');
     }
     if (userMessageContent) parts.push({ text: userMessageContent });
-    
+
     chatHistory.push({ role: 'user', parts: parts });
     appendMessage('', 'model', true);
-    
+
     try {
         let promptTemplate = isFirstInteraction ? PROMPTS.firstInteraction : PROMPTS.normal;
         if (!isFirstInteraction) {
@@ -301,12 +301,29 @@ async function processUserMessage(messageText, image = null, resumeAudioAfter = 
         const wantsImage = isImageGenerationRequest(userMessageContent);
         const modelToUse = (wantsImage || image) ? 'gemini-2.5-flash-image' : 'gemini-2.5-flash';
         
-        const requestConfig = { systemInstruction: promptTemplate };
-        if (wantsImage) requestConfig.responseModalities = [Modality.IMAGE];
-        
+        const requestConfig = {};
+        let finalParts = [...parts]; 
+
+        if (modelToUse === 'gemini-2.5-flash-image') {
+            // Image model doesn't support systemInstruction. Prepend it to the text part.
+            const textPartIndex = finalParts.findIndex(p => 'text' in p);
+            if (textPartIndex !== -1) {
+                finalParts[textPartIndex].text = `${promptTemplate}\n\n${finalParts[textPartIndex].text}`;
+            } else {
+                // If only an image is sent, add the prompt as a text part.
+                finalParts.push({ text: promptTemplate });
+            }
+            if (wantsImage) {
+                requestConfig.responseModalities = [Modality.IMAGE];
+            }
+        } else {
+            // Text model supports systemInstruction.
+            requestConfig.systemInstruction = promptTemplate;
+        }
+
         const response = await ai.models.generateContent({
             model: modelToUse,
-            contents: { parts: parts },
+            contents: { parts: finalParts },
             config: requestConfig
         });
         await processModelResponse(response, wantsImage);
@@ -320,6 +337,7 @@ async function processUserMessage(messageText, image = null, resumeAudioAfter = 
         if (isFirstInteraction) isFirstInteraction = false;
     }
 }
+
 
 // --- AUDIO & LIVE SESSION ---
 function decode(base64) {
