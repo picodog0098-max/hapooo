@@ -160,7 +160,7 @@ function appendMessage(content, role, isProcessing = false, imageUrl = null) {
     footer.classList.add('flex', 'items-center', 'gap-2', 'self-end');
     footer.innerHTML = iconHtml;
     bubble.appendChild(footer);
-    dom.chatHistory.insertBefore(bubble, dom.chatHistory.firstChild);
+    dom.chatHistory.appendChild(bubble);
     scrollToBottom();
 }
 
