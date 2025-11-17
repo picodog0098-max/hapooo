@@ -65,10 +65,6 @@ const dom = {
   stopStreamBtn: document.getElementById('stop-stream-btn') as HTMLButtonElement,
   videoCanvas: document.getElementById('video-canvas') as HTMLCanvasElement,
   shenFooter: document.querySelector('.shen-footer a') as HTMLAnchorElement,
-  apiKeyModal: document.getElementById('api-key-modal') as HTMLDivElement,
-  apiKeyInput: document.getElementById('api-key-input') as HTMLInputElement,
-  apiKeySaveBtn: document.getElementById('api-key-save-btn') as HTMLButtonElement,
-  apiKeyError: document.getElementById('api-key-error') as HTMLParagraphElement,
 };
 
 // --- HELPER FUNCTIONS ---
@@ -200,7 +196,7 @@ function updateUiForState() {
 
     if (!isReady) {
         icon.className = 'fa-solid fa-lock';
-        dom.chatInput.placeholder = 'لطفاً ابتدا کلید API را تنظیم کنید...';
+        dom.chatInput.placeholder = 'در حال آماده‌سازی دستیار...';
         return;
     }
      dom.chatInput.placeholder = 'پیام خود را بنویسید...';
@@ -306,6 +302,7 @@ async function processUserMessage(messageText: string, imageBase64: string | nul
     } finally {
         setProcessing(false);
         if (resumeAudioAfter) startLiveSession();
+        if (isFirstInteraction) isFirstInteraction = false;
     }
 }
 
@@ -502,7 +499,6 @@ function setupEventListeners() {
     dom.profileCancelBtn.addEventListener('click', () => toggleProfileModal(false));
     dom.profileSaveBtn.addEventListener('click', () => {
         petProfile.name = dom.petNameInput.value;
-        // Fix: Changed `vaxlue` to `value` to correctly get the input value.
         petProfile.breed = dom.petBreedInput.value;
         petProfile.age = dom.petAgeInput.value;
         toggleProfileModal(false);
@@ -527,39 +523,9 @@ function setupEventListeners() {
     dom.sosAudioBtn.addEventListener('click', () => { toggleSosModal(false); startLiveSession(true, false); });
     dom.sosStreamBtn.addEventListener('click', () => { toggleSosModal(false); startLiveSession(true, true); });
     dom.stopStreamBtn.addEventListener('click', () => { stopLiveSession(); });
-    dom.apiKeySaveBtn.addEventListener('click', () => {
-        const apiKey = dom.apiKeyInput.value.trim();
-        validateAndStart(apiKey);
-    });
 }
 
 // --- INITIALIZATION ---
-async function validateAndStart(apiKey: string) {
-    if (!apiKey) {
-        dom.apiKeyError.textContent = 'کلید API نمی‌تواند خالی باشد.';
-        dom.apiKeyError.classList.remove('hidden');
-        return;
-    }
-    dom.apiKeySaveBtn.disabled = true;
-    dom.apiKeySaveBtn.textContent = 'در حال بررسی...';
-    dom.apiKeyError.classList.add('hidden');
-    try {
-        const testAi = new GoogleGenAI({ apiKey });
-        await testAi.models.generateContent({ model: 'gemini-2.5-flash', contents: 'test' });
-        ai = testAi;
-        localStorage.setItem('gemini_api_key', apiKey);
-        dom.apiKeyModal.classList.add('hidden');
-        updateUiForState();
-        startInitialGreeting();
-    } catch (error) {
-        console.error("API Key Validation Error:", error);
-        dom.apiKeyError.textContent = 'کلید API نامعتبر است یا خطایی در شبکه رخ داده.';
-        dom.apiKeyError.classList.remove('hidden');
-    } finally {
-        dom.apiKeySaveBtn.disabled = false;
-        dom.apiKeySaveBtn.textContent = 'ذخیره و شروع';
-    }
-}
 async function startInitialGreeting() {
     if (!ai) return;
     setProcessing(true);
@@ -575,21 +541,40 @@ async function startInitialGreeting() {
         chatHistory.push({ role: 'model', parts: [{ text: textContent }] });
     } catch (error) {
         console.error("Initial Greeting Error:", error);
-        updateLastMessage("متاسفانه در شروع مکالمه مشکلی پیش آمده.", 'model');
+        updateLastMessage("متاسفانه در شروع مکالمه مشکلی پیش آمده. لطفاً از صحت کلید API و اتصال اینترنت خود اطمینان حاصل کنید.", 'model');
     } finally {
         finalizeLastMessage();
         setProcessing(false);
     }
 }
-function initializeApp() {
+
+async function initializeApp() {
     setupEventListeners();
-    updateUiForState();
-    const storedApiKey = localStorage.getItem('gemini_api_key');
-    if (storedApiKey) {
-        dom.apiKeyInput.value = storedApiKey;
-        validateAndStart(storedApiKey);
-    } else {
-        console.log("No API key found. Waiting for user to enter one.");
+    updateUiForState(); // Sets initial disabled state
+
+    try {
+        // Ensure the API key is available before proceeding.
+        if (!process.env.API_KEY) {
+            throw new Error("API key is not configured in the environment.");
+        }
+        
+        // Initialize the AI client. This step is usually synchronous and fast.
+        ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+
+        // Enable the UI now that the client is initialized.
+        // API calls will be validated when they are made, preventing a UI lock-up on load.
+        updateUiForState();
+        
+        // Start the conversation. Errors during this call will be handled within the function itself.
+        startInitialGreeting();
+
+    } catch (error) {
+        console.error("Critical initialization failed:", error);
+        // This catch block now only handles critical errors like a missing API key.
+        dom.chatInput.placeholder = 'کلید API یافت نشد.';
+        appendMessage('پیکربندی برنامه ناقص است. لطفاً از در دسترس بودن کلید API اطمینان حاصل کنید و صفحه را رفرش کنید.', 'model');
+        // The UI remains disabled because `ai` was never assigned, which is the correct state for this fatal error.
     }
 }
-initializeApp();
+
+window.addEventListener('DOMContentLoaded', initializeApp);
