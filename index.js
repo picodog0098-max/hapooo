@@ -41,7 +41,7 @@ let nextStartTime = 0;
 const sources = new Set();
 let currentInputTranscription = '';
 let currentOutputTranscription = '';
-let uploadedImageBase64 = null;
+let uploadedImage = null; // Changed from uploadedImageBase64 to an object
 let isProcessing = false;
 let mediaStream = null;
 let videoFrameInterval = null;
@@ -160,7 +160,7 @@ function appendMessage(content, role, isProcessing = false, imageUrl = null) {
     footer.classList.add('flex', 'items-center', 'gap-2', 'self-end');
     footer.innerHTML = iconHtml;
     bubble.appendChild(footer);
-    dom.chatHistory.appendChild(bubble);
+    dom.chatHistory.insertBefore(bubble, dom.chatHistory.firstChild);
     scrollToBottom();
 }
 
@@ -273,30 +273,37 @@ async function processModelResponse(response, requestedImage) {
     if (textContent || imageUrl) chatHistory.push({ role: 'model', parts: [{ text: textContent }] });
 }
 
-async function processUserMessage(messageText, imageBase64 = null, resumeAudioAfter = false) {
+async function processUserMessage(messageText, image = null, resumeAudioAfter = false) {
     if (isProcessing || !ai) return;
     const userMessageContent = messageText.trim();
-    if (!userMessageContent && !imageBase64) return;
+    if (!userMessageContent && !image) return;
     setProcessing(true);
-    appendMessage(userMessageContent, 'user', false, imageBase64 ? `data:image/jpeg;base64,${uploadedImageBase64}` : null);
+    
+    const previewUrl = image ? `data:${image.mimeType};base64,${image.data}` : null;
+    appendMessage(userMessageContent, 'user', false, previewUrl);
+    
     const parts = [];
-    if (imageBase64) {
-        parts.push({ inlineData: { mimeType: 'image/jpeg', data: imageBase64 } });
-        uploadedImageBase64 = null;
+    if (image) {
+        parts.push({ inlineData: { mimeType: image.mimeType, data: image.data } });
+        uploadedImage = null;
         dom.uploadLabel.classList.remove('text-green-400');
     }
     if (userMessageContent) parts.push({ text: userMessageContent });
+    
     chatHistory.push({ role: 'user', parts: parts });
     appendMessage('', 'model', true);
+    
     try {
         let promptTemplate = isFirstInteraction ? PROMPTS.firstInteraction : PROMPTS.normal;
         if (!isFirstInteraction) {
             promptTemplate = promptTemplate.replace('{petName}', petProfile.name || 'حیوان').replace('{petBreed}', petProfile.breed || 'ناشناخته').replace('{petAge}', petProfile.age || 'ناشناخته');
         }
         const wantsImage = isImageGenerationRequest(userMessageContent);
-        const modelToUse = (wantsImage || imageBase64) ? 'gemini-2.5-flash-image' : 'gemini-2.5-flash';
+        const modelToUse = (wantsImage || image) ? 'gemini-2.5-flash-image' : 'gemini-2.5-flash';
+        
         const requestConfig = { systemInstruction: promptTemplate };
         if (wantsImage) requestConfig.responseModalities = [Modality.IMAGE];
+        
         const response = await ai.models.generateContent({
             model: modelToUse,
             contents: { parts: parts },
@@ -493,8 +500,8 @@ function setupEventListeners() {
         const message = dom.chatInput.value.trim();
         if (isAgentActive) {
             stopLiveSession();
-        } else if (message || uploadedImageBase64) {
-            processUserMessage(message, uploadedImageBase64);
+        } else if (message || uploadedImage) {
+            processUserMessage(message, uploadedImage);
             dom.chatInput.value = '';
         } else {
             startLiveSession(false, false);
@@ -520,7 +527,8 @@ function setupEventListeners() {
         if (file) {
             const reader = new FileReader();
             reader.onloadend = () => {
-                uploadedImageBase64 = reader.result.split(',')[1];
+                const base64Data = reader.result.split(',')[1];
+                uploadedImage = { data: base64Data, mimeType: file.type };
                 dom.uploadLabel.classList.add('text-green-400');
             };
             reader.readAsDataURL(file);
