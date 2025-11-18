@@ -295,64 +295,79 @@ async function processUserMessage(messageText, image = null, resumeAudioAfter = 
     const previewUrl = image ? `data:${image.mimeType};base64,${image.data}` : null;
     appendMessage(userMessageContent, 'user', false, previewUrl);
 
-    const userParts = [];
+    const historyParts = [];
     if (image) {
-        userParts.push({ inlineData: { mimeType: image.mimeType, data: image.data } });
-        uploadedImage = null;
+        historyParts.push({ inlineData: { mimeType: image.mimeType, data: image.data } });
+        uploadedImage = null; // Reset after it's been prepared for sending
         dom.uploadLabel.classList.remove('text-green-400');
     }
-    if (userMessageContent) userParts.push({ text: userMessageContent });
-
-    chatHistory.push({ role: 'user', parts: userParts });
+    if (userMessageContent) historyParts.push({ text: userMessageContent });
+    chatHistory.push({ role: 'user', parts: historyParts });
     appendMessage('', 'model', true);
 
     try {
+        const wantsImageGeneration = isImageGenerationRequest(userMessageContent);
         const hasImage = !!image;
-        if (hasImage) {
+        let response;
+        let requestedImageForResponseProcessing = wantsImageGeneration;
+
+        // Any request involving an image (analysis, editing) or requesting an image (generation)
+        if (hasImage || wantsImageGeneration) {
             const modelToUse = 'gemini-2.5-flash-image';
-            const wantsImageGeneration = isImageGenerationRequest(userMessageContent);
-            
-            let promptTemplate = wantsImageGeneration ? PROMPTS.normal : PROMPTS.imageAnalysis;
+            const requestParts = [];
+
+            if (image) { // Add image if provided (for analysis or editing)
+                requestParts.push({ inlineData: { mimeType: image.mimeType, data: image.data } });
+            }
+
+            let promptTemplate = PROMPTS.normal; // Default for generation/editing
+            if (hasImage && !wantsImageGeneration) { // Specific case for analysis
+                promptTemplate = PROMPTS.imageAnalysis;
+            }
+
             promptTemplate = promptTemplate
                 .replace('{petName}', petProfile.name || 'حیوان')
                 .replace('{petBreed}', petProfile.breed || 'ناشناخته')
                 .replace('{petAge}', petProfile.age || 'ناشناخته');
 
-            const requestParts = [];
-            if (image) requestParts.push({ inlineData: { mimeType: image.mimeType, data: image.data } });
-            
-            const fullPrompt = `${promptTemplate}\n\n${userMessageContent || ''}`.trim();
-            requestParts.push({ text: fullPrompt });
+            // For image models, system instructions must be part of the text prompt.
+            const fullPrompt = userMessageContent ? `${promptTemplate}\n\n${userMessageContent}` : promptTemplate;
+            requestParts.push({ text: fullPrompt.trim() });
             
             const requestConfig = {};
             if (wantsImageGeneration) {
                 requestConfig.responseModalities = [Modality.IMAGE];
             }
-
-            const response = await ai.models.generateContent({
+            
+            // Per API documentation, `contents` should be an array of Content objects.
+            response = await ai.models.generateContent({
                 model: modelToUse,
-                contents: { parts: requestParts },
+                contents: [{ role: 'user', parts: requestParts }],
                 config: requestConfig
             });
-            await processModelResponse(response, wantsImageGeneration);
 
-        } else { // Text-only request
+        } else {
+            // This branch is for pure text-chat requests.
+            requestedImageForResponseProcessing = false;
             const modelToUse = 'gemini-2.5-flash';
-            let promptTemplate = isFirstInteraction ? PROMPTS.firstInteraction : PROMPTS.normal;
+            let systemInstruction = isFirstInteraction ? PROMPTS.firstInteraction : PROMPTS.normal;
             if (!isFirstInteraction) {
-                promptTemplate = promptTemplate
+                systemInstruction = systemInstruction
                     .replace('{petName}', petProfile.name || 'حیوان')
                     .replace('{petBreed}', petProfile.breed || 'ناشناخته')
                     .replace('{petAge}', petProfile.age || 'ناشناخته');
             }
             
-            const response = await ai.models.generateContent({
+            // Per API documentation, `contents` should be an array of Content objects.
+            response = await ai.models.generateContent({
                 model: modelToUse,
-                contents: { parts: [{ text: userMessageContent }] },
-                config: { systemInstruction: promptTemplate }
+                contents: [{ role: 'user', parts: [{ text: userMessageContent }] }],
+                config: { systemInstruction: systemInstruction }
             });
-            await processModelResponse(response, false);
         }
+        
+        await processModelResponse(response, requestedImageForResponseProcessing);
+
     } catch (error) {
         console.error("Gemini API Error:", error);
         finalizeLastMessage();
@@ -593,7 +608,7 @@ async function startInitialGreeting() {
     try {
         const response = await ai.models.generateContent({
             model: 'gemini-2.5-flash',
-            contents: 'سلام',
+            contents: [{ role: 'user', parts: [{ text: 'سلام' }] }],
             config: { systemInstruction: PROMPTS.firstInteraction }
         });
         const textContent = response.text?.trim() ?? "سلام! من دستیار هاپوهاب هستم. چطور می‌تونم کمکتون کنم؟";
