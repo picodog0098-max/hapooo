@@ -295,14 +295,16 @@ async function processUserMessage(messageText, image = null, resumeAudioAfter = 
     const previewUrl = image ? `data:${image.mimeType};base64,${image.data}` : null;
     appendMessage(userMessageContent, 'user', false, previewUrl);
 
-    const historyParts = [];
+    // Prepare history entry. Note: `historyParts` is not used for API call in this function,
+    // but good practice to maintain `chatHistory` state correctly.
+    const currentTurnParts = [];
     if (image) {
-        historyParts.push({ inlineData: { mimeType: image.mimeType, data: image.data } });
+        currentTurnParts.push({ inlineData: { mimeType: image.mimeType, data: image.data } });
         uploadedImage = null; // Reset after it's been prepared for sending
         dom.uploadLabel.classList.remove('text-green-400');
     }
-    if (userMessageContent) historyParts.push({ text: userMessageContent });
-    chatHistory.push({ role: 'user', parts: historyParts });
+    if (userMessageContent) currentTurnParts.push({ text: userMessageContent });
+    chatHistory.push({ role: 'user', parts: currentTurnParts });
     appendMessage('', 'model', true);
 
     try {
@@ -339,10 +341,11 @@ async function processUserMessage(messageText, image = null, resumeAudioAfter = 
                 requestConfig.responseModalities = [Modality.IMAGE];
             }
             
-            // Per API documentation, `contents` should be an array of Content objects.
+            // The 'gemini-2.5-flash-image' model expects 'contents' to be a single Content object ({ parts: [...] })
+            // without a role, not an array of them. This is a specific requirement for this model.
             response = await ai.models.generateContent({
                 model: modelToUse,
-                contents: [{ role: 'user', parts: requestParts }],
+                contents: { parts: requestParts },
                 config: requestConfig
             });
 
@@ -358,7 +361,6 @@ async function processUserMessage(messageText, image = null, resumeAudioAfter = 
                     .replace('{petAge}', petProfile.age || 'ناشناخته');
             }
             
-            // Per API documentation, `contents` should be an array of Content objects.
             response = await ai.models.generateContent({
                 model: modelToUse,
                 contents: [{ role: 'user', parts: [{ text: userMessageContent }] }],
