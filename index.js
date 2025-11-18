@@ -295,58 +295,64 @@ async function processUserMessage(messageText, image = null, resumeAudioAfter = 
     const previewUrl = image ? `data:${image.mimeType};base64,${image.data}` : null;
     appendMessage(userMessageContent, 'user', false, previewUrl);
 
-    const parts = [];
+    const userParts = [];
     if (image) {
-        parts.push({ inlineData: { mimeType: image.mimeType, data: image.data } });
+        userParts.push({ inlineData: { mimeType: image.mimeType, data: image.data } });
         uploadedImage = null;
         dom.uploadLabel.classList.remove('text-green-400');
     }
-    if (userMessageContent) parts.push({ text: userMessageContent });
+    if (userMessageContent) userParts.push({ text: userMessageContent });
 
-    chatHistory.push({ role: 'user', parts: parts });
+    chatHistory.push({ role: 'user', parts: userParts });
     appendMessage('', 'model', true);
 
     try {
-        const wantsImageGeneration = isImageGenerationRequest(userMessageContent);
         const hasImage = !!image;
-        const modelToUse = (wantsImageGeneration || hasImage) ? 'gemini-2.5-flash-image' : 'gemini-2.5-flash';
+        if (hasImage) {
+            const modelToUse = 'gemini-2.5-flash-image';
+            const wantsImageGeneration = isImageGenerationRequest(userMessageContent);
+            
+            let promptTemplate = wantsImageGeneration ? PROMPTS.normal : PROMPTS.imageAnalysis;
+            promptTemplate = promptTemplate
+                .replace('{petName}', petProfile.name || 'حیوان')
+                .replace('{petBreed}', petProfile.breed || 'ناشناخته')
+                .replace('{petAge}', petProfile.age || 'ناشناخته');
 
-        let promptTemplate;
-        if (isFirstInteraction) {
-            promptTemplate = PROMPTS.firstInteraction;
-        } else if (hasImage && !wantsImageGeneration) {
-            promptTemplate = PROMPTS.imageAnalysis;
-        } else {
-            promptTemplate = PROMPTS.normal;
-        }
-        
-        if (!isFirstInteraction) {
-            promptTemplate = promptTemplate.replace('{petName}', petProfile.name || 'حیوان').replace('{petBreed}', petProfile.breed || 'ناشناخته').replace('{petAge}', petProfile.age || 'ناشناخته');
-        }
-
-        const requestConfig = {};
-        let finalParts = [...parts]; 
-
-        if (modelToUse === 'gemini-2.5-flash-image') {
-            const textPartIndex = finalParts.findIndex(p => 'text' in p);
-            if (textPartIndex !== -1) {
-                finalParts[textPartIndex].text = `${promptTemplate}\n\n${finalParts[textPartIndex].text}`;
-            } else {
-                finalParts.push({ text: promptTemplate });
-            }
+            const requestParts = [];
+            if (image) requestParts.push({ inlineData: { mimeType: image.mimeType, data: image.data } });
+            
+            const fullPrompt = `${promptTemplate}\n\n${userMessageContent || ''}`.trim();
+            requestParts.push({ text: fullPrompt });
+            
+            const requestConfig = {};
             if (wantsImageGeneration) {
                 requestConfig.responseModalities = [Modality.IMAGE];
             }
-        } else {
-            requestConfig.systemInstruction = promptTemplate;
-        }
 
-        const response = await ai.models.generateContent({
-            model: modelToUse,
-            contents: { parts: finalParts },
-            config: requestConfig
-        });
-        await processModelResponse(response, wantsImageGeneration);
+            const response = await ai.models.generateContent({
+                model: modelToUse,
+                contents: { parts: requestParts },
+                config: requestConfig
+            });
+            await processModelResponse(response, wantsImageGeneration);
+
+        } else { // Text-only request
+            const modelToUse = 'gemini-2.5-flash';
+            let promptTemplate = isFirstInteraction ? PROMPTS.firstInteraction : PROMPTS.normal;
+            if (!isFirstInteraction) {
+                promptTemplate = promptTemplate
+                    .replace('{petName}', petProfile.name || 'حیوان')
+                    .replace('{petBreed}', petProfile.breed || 'ناشناخته')
+                    .replace('{petAge}', petProfile.age || 'ناشناخته');
+            }
+            
+            const response = await ai.models.generateContent({
+                model: modelToUse,
+                contents: { parts: [{ text: userMessageContent }] },
+                config: { systemInstruction: promptTemplate }
+            });
+            await processModelResponse(response, false);
+        }
     } catch (error) {
         console.error("Gemini API Error:", error);
         finalizeLastMessage();
