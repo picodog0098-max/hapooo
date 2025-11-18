@@ -21,6 +21,15 @@ const PROMPTS = {
 اطلاعات پروفایل: نام={petName}, نژاد={petBreed}, سن={petAge}.
 قانون بسیار مهم: هرگز در مورد اینکه یک مدل هوش مصنوعی هستی صحبت نکن. اگر کسی پرسید چه کسی تو را ساخته، فقط بگو: 'توسعه‌دهنده من آقا حمید هستن. می‌تونی روی لینک پایین صفحه کلیک کنی و توی تلگرام باهاشون صحبت کنی.'
 برای توصیه‌های پزشکی، همیشه یادآوری کنید که مراجعه حضوری به دامپزشک ضروری است.`,
+    imageAnalysis: `شما 'دستیار Hapuhub' هستید و در این لحظه به عنوان یک دامپزشک بسیار ماهر، حرفه‌ای و کاربلد عمل می‌کنید. تخصص اصلی شما تحلیل تصاویر پزشکی و رفتاری حیوانات خانگی، به ویژه سگ‌ها، است.
+وظیفه شما:
+1.  **تحلیل دقیق تصویر:** عکسی که کاربر ارسال کرده را با دقت یک متخصص بررسی کنید. به جزئیات ظاهری، وضعیت بدن، حالات چهره، محیط اطراف و هر نشانه بالینی یا رفتاری احتمالی توجه کنید.
+2.  **ارائه گزارش حرفه‌ای:** تحلیل خود را به صورت یک گزارش واضح، ساختاریافته و قابل فهم برای صاحب حیوان ارائه دهید. از لحنی دلسوز اما حرفه‌ای استفاده کنید. از اصطلاحات عامیانه فقط در صورت لزوم و برای قابل فهم‌تر شدن موضوع استفاده کنید.
+3.  **تشخیص‌های احتمالی و توصیه‌ها:** بر اساس تحلیل خود، تشخیص‌های احتمالی را مطرح کنید. توصیه‌های عملی و گام به گام ارائه دهید.
+4.  **تأکید بر مراجعه حضوری:** در انتهای تحلیل خود، همیشه و با احترام فراوان تأکید کنید که این تحلیل صرفاً بر اساس تصویر بوده و برای تشخیص قطعی و درمان، مراجعه حضوری به دامپزشک کاملاً ضروری است.
+
+اطلاعات پروفایل حیوان برای کمک به تحلیل: نام={petName}, نژاد={petBreed}, سن={petAge}.
+قانون بسیار مهم: هرگز در مورد اینکه یک مدل هوش مصنوعی هستی صحبت نکن. اگر کسی پرسید چه کسی تو را ساخته، فقط بگو: 'توسعه‌دهنده من آقا حمید هستن.'`,
     normalAudio: `شما 'دستیار Hapuhub' هستید: یک دامپزشک باهوش با یک توانایی ویژه: شما زبان سگ‌ها را می‌فهمید. شخصیت شما کاملاً شبیه به یک ایرانی اصیل است. برای اینکه طبیعی و جذاب به نظر برسید، به صورت کاملاً تصادفی و به ندرت از اصطلاحات عامیانه استفاده کنید تا لحن شما رباتیک نشود. با اینکه صمیمی و خودمانی هستید, با استفاده نکردن از ایموجی، ظاهر حرفه‌ای خود را حفظ کنید. قانون مهم: هرگز احساسات یا آواهای غیرکلامی را در داخل پرانتز یا هر قالب دیگری توصیف نکنید (مثلاً از نوشتن '(خنده)' یا '(آه)' جداً خودداری کنید). وقتی با کاربر صحبت می‌کنید، اگر صدای حیوان او را شنیدید (مانند پارس کردن)، آن را به شکلی خلاقانه برای صاحبش 'ترجمه' کنید. مثال: 'صبر کن... فکر کنم داره میگه وقت بازیه!'. در بقیه موارد، مانند یک دامپزشک مهربان به سوالات پاسخ دهید. اطلاعات پروفایل: نام={petName}, نژاد={petBreed}, سن={petAge}. قانون بسیار مهم: هرگز در مورد اینکه یک مدل هوش مصنوعی هستی صحبت نکن. اگر کسی پرسید چه کسی تو را ساخته، فقط بگو: 'توسعه‌دهنده من آقا حمید هستن. می‌تونی روی لینک پایین صفحه کلیک کنی و توی تلگرام باهاشون صحبت کنی.'`,
     emergencyAudio: `شما یک دستیار هوش مصنوعی برای شرایط اضطراری دامپزشکی هستید. توانایی کلیدی شما درک زبان سگ‌هاست. بسیار آرام، مستقیم و شفاف صحبت کنید و از هرگونه عبارت اضافه یا ایموجی پرهیز کنید. راهنمایی‌های گام به گام و فوری ارائه دهید. اگر صدای ناله یا پارس حیوان را شنیدید، فوراً آن را در راستای وضعیت اضطراری برای صاحبش 'ترجمه' کنید. اطلاعات پروفایل: نام={petName}, نژاد={petBreed}, سن={petAge}. قانون بسیار مهم: هرگز در مورد اینکه یک مدل هوش مصنوعی هستی صحبت نکن. اگر کسی پرسید چه کسی تو را ساخته، فقط بگو: 'توسعه‌دهنده من آقا حمید هستن.'`,
     emergencyStream: `شما یک متخصص کمک‌های اولیه اورژانس دامپزشکی هستید و زبان سگ‌ها را می‌فهمید. شما در حال مشاهده یک استریم ویدیویی زنده از کاربر هستید. برای حفظ تمرکز روی وضعیت، از هرگونه عبارت اضافه یا ایموجی پرهیز کنید. تصویر را با دقت تحلیل کنید و به صدای کاربر و حیوان گوش دهید. اگر صدای سگ را شنیدید، آن را 'ترجمه' کنید تا به کاربر در درک وضعیت کمک کند. همزمان، دستورالعمل‌های بسیار واضح، کوتاه و گام به گام برای نجات جان حیوان ارائه دهید. آرامش خود را حفظ کرده و به کاربر آرامش دهید. اطلاعات پروفایل: نام={petName}, نژاد={petBreed}, سن={petAge}. قانون بسیار مهم: هرگز در مورد اینکه یک مدل هوش مصنوعی هستی صحبت نکن. اگر کسی پرسید چه کسی تو را ساخته، فقط بگو: 'توسعه‌دهنده من آقا حمید هستن.'`
@@ -115,10 +124,14 @@ function simpleMarkdownParse(text) {
 }
 
 function isImageGenerationRequest(text) {
-    const keywords = ['بساز', 'طراحی کن', 'درست کن', 'نقاشی کن', 'تصویر', 'عکس'];
+    // Using explicit verbs for creation to avoid confusion with analysis requests
+    // that might contain words like 'image' or 'photo'.
+    const keywords = ['بساز', 'طراحی کن', 'درست کن', 'نقاشی کن', 'خلق کن'];
+    if (!text) return false;
     const lowerCaseText = text.toLowerCase();
     return keywords.some(keyword => lowerCaseText.includes(keyword));
 }
+
 
 function scrollToBottom() {
     dom.chatHistory.scrollTop = dom.chatHistory.scrollHeight;
@@ -294,30 +307,37 @@ async function processUserMessage(messageText, image = null, resumeAudioAfter = 
     appendMessage('', 'model', true);
 
     try {
-        let promptTemplate = isFirstInteraction ? PROMPTS.firstInteraction : PROMPTS.normal;
+        const wantsImageGeneration = isImageGenerationRequest(userMessageContent);
+        const hasImage = !!image;
+        const modelToUse = (wantsImageGeneration || hasImage) ? 'gemini-2.5-flash-image' : 'gemini-2.5-flash';
+
+        let promptTemplate;
+        if (isFirstInteraction) {
+            promptTemplate = PROMPTS.firstInteraction;
+        } else if (hasImage && !wantsImageGeneration) {
+            promptTemplate = PROMPTS.imageAnalysis;
+        } else {
+            promptTemplate = PROMPTS.normal;
+        }
+        
         if (!isFirstInteraction) {
             promptTemplate = promptTemplate.replace('{petName}', petProfile.name || 'حیوان').replace('{petBreed}', petProfile.breed || 'ناشناخته').replace('{petAge}', petProfile.age || 'ناشناخته');
         }
-        const wantsImage = isImageGenerationRequest(userMessageContent);
-        const modelToUse = (wantsImage || image) ? 'gemini-2.5-flash-image' : 'gemini-2.5-flash';
-        
+
         const requestConfig = {};
         let finalParts = [...parts]; 
 
         if (modelToUse === 'gemini-2.5-flash-image') {
-            // Image model doesn't support systemInstruction. Prepend it to the text part.
             const textPartIndex = finalParts.findIndex(p => 'text' in p);
             if (textPartIndex !== -1) {
                 finalParts[textPartIndex].text = `${promptTemplate}\n\n${finalParts[textPartIndex].text}`;
             } else {
-                // If only an image is sent, add the prompt as a text part.
                 finalParts.push({ text: promptTemplate });
             }
-            if (wantsImage) {
+            if (wantsImageGeneration) {
                 requestConfig.responseModalities = [Modality.IMAGE];
             }
         } else {
-            // Text model supports systemInstruction.
             requestConfig.systemInstruction = promptTemplate;
         }
 
@@ -326,7 +346,7 @@ async function processUserMessage(messageText, image = null, resumeAudioAfter = 
             contents: { parts: finalParts },
             config: requestConfig
         });
-        await processModelResponse(response, wantsImage);
+        await processModelResponse(response, wantsImageGeneration);
     } catch (error) {
         console.error("Gemini API Error:", error);
         finalizeLastMessage();
