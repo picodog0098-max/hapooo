@@ -259,23 +259,26 @@ function toggleSosModal(show) {
 async function processModelResponse(response, requestedImage) {
     let textContent = '', imageUrl = null, hasImage = false;
     try {
+        // Use the simplified .text accessor first, as it's the most robust way to get text.
+        textContent = response.text?.trim() ?? '';
+
+        // Then, check for image parts, common in generation responses.
         if (response.candidates?.[0]?.content?.parts) {
             for (const part of response.candidates[0].content.parts) {
                 if (part.inlineData?.data) {
                     imageUrl = `data:image/png;base64,${part.inlineData.data}`;
                     hasImage = true;
-                } else if (part.text) {
+                } else if (part.text && !textContent) { // Append text if .text accessor failed for some reason
                     textContent += part.text.trim() + '\n';
                 }
             }
-        } else if (response.text) {
-            textContent = response.text.trim();
         }
         textContent = textContent.trim();
     } catch (e) {
         console.error("Error parsing model response:", e);
         textContent = "متاسفانه در پردازش پاسخ خطایی رخ داد.";
     }
+    
     if (requestedImage && !hasImage) {
         updateLastMessage(textContent ? `من نتوانستم تصویر را بسازم. پاسخ مدل: "${textContent}"` : "متاسفانه نتوانستم تصویر را بسازم. ممکن است درخواست شما با قوانین ایمنی مغایرت داشته باشد.", 'model');
     } else {
@@ -295,12 +298,11 @@ async function processUserMessage(messageText, image = null, resumeAudioAfter = 
     const previewUrl = image ? `data:${image.mimeType};base64,${image.data}` : null;
     appendMessage(userMessageContent, 'user', false, previewUrl);
 
-    // Prepare history entry. Note: `historyParts` is not used for API call in this function,
-    // but good practice to maintain `chatHistory` state correctly.
+    // Prepare history and UI
     const currentTurnParts = [];
     if (image) {
         currentTurnParts.push({ inlineData: { mimeType: image.mimeType, data: image.data } });
-        uploadedImage = null; // Reset after it's been prepared for sending
+        uploadedImage = null; // Reset
         dom.uploadLabel.classList.remove('text-green-400');
     }
     if (userMessageContent) currentTurnParts.push({ text: userMessageContent });
@@ -313,46 +315,44 @@ async function processUserMessage(messageText, image = null, resumeAudioAfter = 
         let response;
         let requestedImageForResponseProcessing = wantsImageGeneration;
 
-        // Any request involving an image (analysis, editing) or requesting an image (generation)
-        if (hasImage || wantsImageGeneration) {
-            const modelToUse = 'gemini-2.5-flash-image';
+        if (wantsImageGeneration) {
+            // --- IMAGE GENERATION/EDITING ---
             const requestParts = [];
-
-            if (image) { // Add image if provided (for analysis or editing)
+            // If an image is uploaded with a generation prompt, it's for editing.
+            if (hasImage) {
                 requestParts.push({ inlineData: { mimeType: image.mimeType, data: image.data } });
             }
+            // The prompt for generation is just the user's text.
+            requestParts.push({ text: userMessageContent });
 
-            let promptTemplate = PROMPTS.normal; // Default for generation/editing
-            if (hasImage && !wantsImageGeneration) { // Specific case for analysis
-                promptTemplate = PROMPTS.imageAnalysis;
-            }
+            response = await ai.models.generateContent({
+                model: 'gemini-2.5-flash-image',
+                contents: { parts: requestParts },
+                config: { responseModalities: [Modality.IMAGE] }
+            });
 
-            promptTemplate = promptTemplate
+        } else if (hasImage) {
+            // --- IMAGE ANALYSIS ---
+            const requestParts = [];
+            requestParts.push({ inlineData: { mimeType: image.mimeType, data: image.data } });
+
+            // Use the specific imageAnalysis persona
+            let promptTemplate = PROMPTS.imageAnalysis
                 .replace('{petName}', petProfile.name || 'حیوان')
                 .replace('{petBreed}', petProfile.breed || 'ناشناخته')
                 .replace('{petAge}', petProfile.age || 'ناشناخته');
 
-            // For image models, system instructions must be part of the text prompt.
-            const fullPrompt = userMessageContent ? `${promptTemplate}\n\n${userMessageContent}` : promptTemplate;
+            // For multimodal models, bake the instruction into the prompt text
+            const fullPrompt = userMessageContent ? `${promptTemplate}\n\nUser query: ${userMessageContent}` : promptTemplate;
             requestParts.push({ text: fullPrompt.trim() });
             
-            const requestConfig = {};
-            if (wantsImageGeneration) {
-                requestConfig.responseModalities = [Modality.IMAGE];
-            }
-            
-            // The 'gemini-2.5-flash-image' model expects 'contents' to be a single Content object ({ parts: [...] })
-            // without a role, not an array of them. This is a specific requirement for this model.
             response = await ai.models.generateContent({
-                model: modelToUse,
-                contents: { parts: requestParts },
-                config: requestConfig
+                model: 'gemini-2.5-flash', // Use the standard flash model for analysis
+                contents: { parts: requestParts }
             });
 
         } else {
-            // This branch is for pure text-chat requests.
-            requestedImageForResponseProcessing = false;
-            const modelToUse = 'gemini-2.5-flash';
+            // --- TEXT-ONLY CHAT ---
             let systemInstruction = isFirstInteraction ? PROMPTS.firstInteraction : PROMPTS.normal;
             if (!isFirstInteraction) {
                 systemInstruction = systemInstruction
@@ -362,7 +362,7 @@ async function processUserMessage(messageText, image = null, resumeAudioAfter = 
             }
             
             response = await ai.models.generateContent({
-                model: modelToUse,
+                model: 'gemini-2.5-flash',
                 contents: [{ role: 'user', parts: [{ text: userMessageContent }] }],
                 config: { systemInstruction: systemInstruction }
             });
